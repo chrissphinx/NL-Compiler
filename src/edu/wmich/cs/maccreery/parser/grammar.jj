@@ -1,0 +1,1150 @@
+/**
+ * JavaCC file
+ */
+
+options {
+  JDK_VERSION = "1.6";
+}
+PARSER_BEGIN(NolifeParser)
+package edu.wmich.cs.maccreery.parser;
+
+import edu.wmich.cs.maccreery.ast.*;
+import java.util.Vector;
+
+public class NolifeParser {
+}
+
+PARSER_END(NolifeParser)
+
+SKIP :
+{
+ 	" "
+|	"\r"
+|	"\t"
+|	"\n"
+|   <"{"(~["}"])*"}">
+}
+
+TOKEN : /* keywords */
+{
+    < O_MOD: "MOD">
+    | <O_AND: "AND">
+    | <O_ARRAY: "ARRAY">
+    | <O_BEGIN: "BEGIN">
+    | <O_CHARACTER: "CHARACTER">
+    | <O_DO: "DO">
+    | <O_ELSE: "ELSE">
+    | <O_END: "END">
+    | <O_FLOAT: "FLOAT">
+    | <O_FUNCTION: "FUNCTION">
+    | <O_IF: "IF">
+    | <O_INTEGER: "INTEGER">
+    | <O_NOT: "NOT">
+    | <O_OF: "OF">
+    | <O_OR: "OR">
+    | <O_PROCEDURE: "PROCEDURE">
+    | <O_PROGRAM: "PROGRAM">
+    | <O_READ: "READ">
+    | <O_RETURN: "RETURN">
+    | <O_THEN: "THEN">
+    | <O_VAR: "VAR">
+    | <O_WHILE: "WHILE">
+    | <O_WRITE: "WRITE">
+    | <O_CASE: "CASE">
+}
+
+TOKEN : /* other lexical tokens */
+{
+  <O_LE: "<=">
+| <O_LT: "<">
+| <O_GE: ">=">
+| <O_GT: ">">
+| <O_EQ: "=">
+| <O_NE: "<>">
+| <O_ASSIGN: ":=">
+| <O_COLON: ":">
+| <O_SEMICOLON: ";">
+| <O_COMMA: ",">
+| <O_LBRACKET: "[">
+| <O_RBRACKET: "]">
+| <O_LPAREN: "(">
+| <O_RPAREN: ")">
+| <O_DOTDOT: "..">
+| <O_PLUS: "+">
+| <O_MINUS: "-">
+| <O_TIMES: "*">
+| <O_CHAR: "'"~["'"]"'">
+| <O_STRING: "'"~["'"](~["'"])+"'">
+| <#DIGIT: ["0" - "9"] >
+| <#ALPHA: ["a" - "z"] | ["A" - "Z"] >
+| <O_IDENTIFIER: <ALPHA> (<ALPHA> | <DIGIT>)*>
+| <#EXPONENT: ("e" | "E") ("+" | "-")? (<DIGIT>)+ >
+| <O_FLOATCON: <O_INT> ("." (<DIGIT>)+ (<EXPONENT>)? | <EXPONENT>) >
+| <O_INT: "0" | ["1" - "9"](<DIGIT>)* >
+}
+
+ProgramNode program():
+{
+	Vector variableDecls = new Vector();
+	Vector subProgDecls = new Vector();
+	CompoundStatementNode body;
+	Token prog,name;
+}
+{
+   prog = <O_PROGRAM> name = <O_IDENTIFIER> <O_SEMICOLON>
+   (variableDecls = decls())?
+   (subProgDecls = subprogram_decls())?
+   body = compound_stmt()
+  	{
+    	ProgramNode programNode = new ProgramNode(name.image,variableDecls,subProgDecls,body);
+    	programNode.setLineNumber(prog.beginLine);
+    	programNode.setParent(null);
+
+    	for (int i = 0; i < variableDecls.size(); i++) {
+      		VariableDeclarationNode decl = (VariableDeclarationNode)variableDecls.elementAt(i);
+      		decl.setParent(programNode);
+    	}
+
+    	for (int i = 0; i < subProgDecls.size(); i++) {
+      		SubProgramDeclNode decl = (SubProgramDeclNode)subProgDecls.elementAt(i);
+      		decl.setParent(programNode);
+    	}
+    	body.setParent(programNode);
+
+    	return programNode;
+  	}
+}
+
+Vector decls():
+{
+ 	Vector declList;
+}
+{
+	<O_VAR> declList = decl_list()
+	{
+		return declList;
+	}
+}
+
+Vector decl_list() :
+{
+	Vector declList = new Vector();
+	VariableDeclarationNode variableDecl;
+	Vector idList;
+	TypeNode idType;
+	Token semi;
+}
+{
+  (idList = identifier_list() <O_COLON> idType = type()
+   semi = <O_SEMICOLON>
+  	{
+    	variableDecl = new VariableDeclarationNode(idList,idType);
+    	variableDecl.setLineNumber(semi.beginLine);
+    	declList.add(variableDecl);
+    	idType.setParent(variableDecl);
+  	}
+  )+
+
+  {
+  	return declList;
+  }
+}
+
+Vector identifier_list() :
+{
+	Vector idList = new Vector();
+	String name;
+	Token id;
+}
+{
+	id = <O_IDENTIFIER>
+  		{
+    		name = new String(id.image);
+    		idList.add(name);
+  		}
+  	(<O_COMMA> id = <O_IDENTIFIER>
+  		{
+    	 	name = new String(id.image);
+    		idList.add(name);
+  		}
+  	)*
+
+  	{
+  		return idList;
+  	}
+}
+
+TypeNode type() :
+{
+	TypeNode typeN;
+}
+{
+  (
+  	typeN = standard_type()
+  | typeN = array_type()
+  )
+
+  {
+  	return typeN;
+  }
+}
+
+StandardTypeNode standard_type() :
+{
+	StandardTypeNode standardType;
+	Token stype;
+}
+{
+	(
+		stype = <O_INTEGER>
+  			{
+    			standardType = new StandardTypeNode(TypeTable.INT_TYPE);
+    			standardType.setLineNumber(stype.beginLine);
+  			}
+  		| stype = <O_FLOAT>
+	  		{
+	    		standardType = new StandardTypeNode(TypeTable.FLOAT_TYPE);
+	    		standardType.setLineNumber(stype.beginLine);
+	  		}
+  		| stype = <O_CHARACTER>
+		  	{
+		   	 standardType = new StandardTypeNode(TypeTable.CHAR_TYPE);
+		   	 standardType.setLineNumber(stype.beginLine);
+		  	}
+  	)
+  	{
+  		return standardType;
+  	}
+}
+
+ArrayTypeNode array_type() :
+{
+	ArrayTypeNode arrayType;
+	DimensionNode dimension;
+	StandardTypeNode typeNode;
+	Token array;
+	}
+{
+  array = <O_ARRAY> <O_LBRACKET> dimension = dim() <O_RBRACKET> <O_OF> typeNode = standard_type()
+  	{
+    	arrayType = new ArrayTypeNode(dimension,typeNode);
+    	arrayType.setLineNumber(array.beginLine);
+    	dimension.setParent(arrayType);
+    	typeNode.setParent(arrayType);
+
+    	return arrayType;
+  	}
+}
+
+DimensionNode dim() :
+{
+	DimensionNode dimNode;
+	Token lower,upper;
+}
+{
+	(
+		lower = <O_INT> <O_DOTDOT> upper = <O_INT>
+  			{
+    			int lowerBound = Integer.valueOf(lower.image).intValue();
+    			int upperBound = Integer.valueOf(upper.image).intValue();
+
+    			dimNode = new IntegerDimensionNode(lowerBound,upperBound);
+    			dimNode.setLineNumber(lower.beginLine);
+  			}
+
+  		| lower = <O_CHAR> <O_DOTDOT> upper = <O_CHAR>
+  			{
+    			dimNode = new CharacterDimensionNode(lower.image.charAt(1),
+                                     			 upper.image.charAt(1));
+    			dimNode.setLineNumber(lower.beginLine);
+  			}
+  	)
+
+  	{
+  		return dimNode;
+  	}
+}
+
+Vector subprogram_decls() :
+{
+	Vector subProgDecls = new Vector();
+	SubProgramDeclNode subDecl = null;
+}
+{
+	(
+		subDecl = subprogram_decl() <O_SEMICOLON>
+  			{
+    			subProgDecls.add(subDecl);
+  			}
+  	)+
+
+  	{
+  		return subProgDecls;
+  	}
+}
+
+SubProgramDeclNode subprogram_decl() :
+{
+	SubProgramDeclNode declNode;
+	Vector variableDecls = new Vector();
+	CompoundStatementNode body;
+}
+{
+	declNode = subprogram_head() (variableDecls = decls())? body = compound_stmt()
+  		{
+    		declNode.setVariableDecls(variableDecls);
+		    declNode.setBody(body);
+		    for (int i = 0; i < variableDecls.size(); i++) {
+		      VariableDeclarationNode decl = (VariableDeclarationNode)variableDecls.elementAt(i);
+		      decl.setParent(declNode);
+		    }
+		    body.setParent(declNode);
+
+		    return declNode;
+ 		 }
+}
+
+SubProgramDeclNode subprogram_head() :
+{
+	SubProgramDeclNode declNode;
+	Vector paramList = new Vector();
+	StandardTypeNode declType;
+	Token func,name;
+}
+{
+	(
+		func = <O_FUNCTION> name = <O_IDENTIFIER> (paramList = arguments())? <O_COLON> declType = standard_type() <O_SEMICOLON>
+  			{
+			    declNode = new FunctionDeclNode(name.image,paramList,declType);
+			    declNode.setLineNumber(func.beginLine);
+			    declType.setParent(declNode);
+			    for (int i = 0; i < paramList.size(); i++) {
+			      VariableDeclarationNode decl = (VariableDeclarationNode)paramList.elementAt(i);
+			      decl.setParent(declNode);
+			    }
+			}
+  		| func = <O_PROCEDURE> name = <O_IDENTIFIER> (paramList = arguments())? <O_SEMICOLON>
+		  	{
+			    declNode = new ProcedureDeclNode(name.image,paramList);
+			    declNode.setLineNumber(func.beginLine);
+			    for (int i = 0; i < paramList.size(); i++) {
+			      VariableDeclarationNode decl = (VariableDeclarationNode)paramList.elementAt(i);
+			      decl.setParent(declNode);
+			    }
+		  	}
+	)
+
+	{
+		return declNode;
+	}
+}
+
+Vector arguments() :
+{
+	Vector paramList;
+}
+{
+  <O_LPAREN> paramList = parameter_list() <O_RPAREN>
+
+  {
+  	return paramList;
+  }
+}
+
+Vector parameter_list() :
+{
+	Vector paramList = new Vector();
+	Vector idList;
+	TypeNode idType;
+	VariableDeclarationNode paramDecl;
+	Token token;
+}
+{
+	idList = identifier_list() token = <O_COLON> idType = type()
+	    {
+		     paramDecl = new VariableDeclarationNode(idList,idType);
+		     paramDecl.setLineNumber(token.beginLine);
+		     paramList.add(paramDecl);
+		     idType.setParent(paramDecl);
+	    }
+    (
+    	<O_SEMICOLON> idList = identifier_list() token = <O_COLON> idType = type()
+	    {
+		     paramDecl = new VariableDeclarationNode(idList,idType);
+		     paramDecl.setLineNumber(token.beginLine);
+		     paramList.add(paramDecl);
+		     idType.setParent(paramDecl);
+	   }
+    )*
+
+    {
+    	return paramList;
+    }
+}
+
+CompoundStatementNode compound_stmt() :
+{
+	CompoundStatementNode compoundStmt;
+	Vector stmtList;
+	Token token;
+}
+{
+	token = <O_BEGIN> stmtList = stmt_list() <O_END>
+  	{
+    	compoundStmt = new CompoundStatementNode(stmtList);
+	    compoundStmt.setLineNumber(token.beginLine);
+ 	   	for (int i = 0; i < stmtList.size(); i++) {
+ 	     	StatementNode stmt = (StatementNode)stmtList.elementAt(i);
+ 	     	stmt.setParent(compoundStmt);
+ 	   	}
+
+ 	   	return compoundStmt;
+ 	 }
+}
+
+Vector stmt_list() :
+{
+	Vector stmtList = new Vector();
+	StatementNode stmtNode;
+}
+{
+	stmtNode = stmt()
+  		{
+    		stmtList.add(stmtNode);
+  		}
+  	(
+  		<O_SEMICOLON> stmtNode = stmt()
+  			{
+   				stmtList.add(stmtNode);
+  			}
+  	)*
+
+	{
+		return stmtList;
+	}
+}
+
+StatementNode stmt() :
+{
+	StatementNode stmtNode;
+  	ExpressionNode invocation = null;
+}
+
+{
+	( LOOKAHEAD(2)
+		stmtNode = assignment()
+  		| stmtNode = if_stmt()
+  		| stmtNode = while_stmt()
+  		| invocation = procedure_invocation()
+  			{
+   				stmtNode = new ProcedureInvocationNode((InvocationNode)invocation);
+   				stmtNode.setLineNumber(invocation.getLineNumber());
+   				invocation.setParent(stmtNode);
+  			}
+  		| stmtNode = i_o_stmt()
+  		| stmtNode = compound_stmt()
+  		| stmtNode = return_stmt()
+  		| stmtNode = case_stmt()
+	)
+
+	{
+		return stmtNode;
+	}
+}
+
+AssignmentStatementNode assignment() :
+{
+	AssignmentStatementNode assignStmt;
+ 	VariableReferenceNode lhs;
+ 	ExpressionNode rhs;
+ 	Token token;
+}
+{
+	lhs = variable() token = <O_ASSIGN> rhs = expr()
+  {
+    assignStmt = new AssignmentStatementNode(lhs,rhs);
+    assignStmt.setLineNumber(token.beginLine);
+    lhs.setParent(assignStmt);
+    rhs.setParent(assignStmt);
+
+    return assignStmt;
+  }
+}
+
+IfStatementNode if_stmt() :
+{
+	IfStatementNode ifStmt;
+  	StatementNode thenStmt;
+  	StatementNode elseStmt = null;
+ 	ExpressionNode testExpr;
+ 	Token token;
+}
+{
+	token = <O_IF> testExpr = expr() <O_THEN> thenStmt = stmt()
+	[LOOKAHEAD(<O_ELSE>) <O_ELSE> elseStmt = stmt()]
+  		{
+		    ifStmt = new IfStatementNode(testExpr,thenStmt,elseStmt);
+		    ifStmt.setLineNumber(token.beginLine);
+		    testExpr.setParent(ifStmt);
+		    thenStmt.setParent(ifStmt);
+		    if (elseStmt != null)
+		      elseStmt.setParent(ifStmt);
+
+		    return ifStmt;
+		}
+}
+
+WhileStatementNode while_stmt() :
+{
+	WhileStatementNode whileStmt;
+  	ExpressionNode whileExpr;
+  	StatementNode controlStmt;
+  	Token token;
+}
+{
+	token = <O_WHILE> whileExpr = expr() <O_DO> controlStmt = stmt()
+  		{
+		    whileStmt = new WhileStatementNode(whileExpr,controlStmt);
+		    whileStmt.setLineNumber(token.beginLine);
+		    whileExpr.setParent(whileStmt);
+		    controlStmt.setParent(whileStmt);
+
+		    return whileStmt;
+		}
+}
+
+InvocationNode procedure_invocation() :
+{
+	InvocationNode invocation ;
+	Vector exprList = new Vector();
+	Token token;
+}
+{
+	token = <O_IDENTIFIER> <O_LPAREN> (exprList = expr_list())? <O_RPAREN>
+	  {
+		   invocation = new InvocationNode(token.image,exprList);
+		   invocation.setLineNumber(token.beginLine);
+		   for (int i = 0; i < exprList.size(); i++) {
+		     ExpressionNode expr = (ExpressionNode)exprList.elementAt(i);
+		     expr.setParent(invocation);
+		   }
+
+		   return invocation;
+	  }
+}
+
+StatementNode i_o_stmt() :
+{
+	StatementNode ioStmt;
+	VariableReferenceNode varNode = null;
+  	ASTNode writeExpr = null;
+  	Token token;
+}
+{
+	(
+		token = <O_READ> <O_LPAREN> varNode = variable() <O_RPAREN>
+		  {
+		    ioStmt = new ReadStatementNode(varNode);
+		    ioStmt.setLineNumber(token.beginLine);
+		    varNode.setParent(ioStmt);
+		  }
+  		| token = <O_WRITE> <O_LPAREN> (writeExpr = expr() |
+  										writeExpr = string()) <O_RPAREN>
+		  {
+		    ioStmt = new WriteStatementNode(writeExpr);
+		    ioStmt.setLineNumber(token.beginLine);
+		    writeExpr.setParent(ioStmt);
+		  }
+	)
+
+	{
+		return ioStmt;
+	}
+}
+
+ReturnStatementNode return_stmt() :
+{
+	ReturnStatementNode returnStmt;
+	ExpressionNode exprNode;
+	Token token;
+}
+{
+	token = <O_RETURN> exprNode = expr()
+	  {
+	    returnStmt = new ReturnStatementNode(exprNode);
+	    returnStmt.setLineNumber(token.beginLine);
+	    exprNode.setParent(returnStmt);
+
+	    return returnStmt;
+	  }
+}
+
+CaseStatementNode case_stmt() :
+{
+	CaseStatementNode caseStatement;
+	ExpressionNode caseExpr;
+  	Vector caseList = new Vector();
+  	Token token;
+}
+{
+	token = <O_CASE> caseExpr = expr() <O_OF> (caseList = cases())? <O_END>
+	  {
+		   caseStatement = new CaseStatementNode(caseExpr,caseList);
+		   caseStatement.setLineNumber(token.beginLine);
+		   caseExpr.setParent(caseStatement);
+		   for (int i = 0; i < caseList.size(); i++) {
+		     CaseElementNode elem = (CaseElementNode)caseList.elementAt(i);
+		     elem.setParent(caseStatement);
+		   }
+
+		   return caseStatement;
+	  }
+}
+
+Vector cases() :
+{
+	Vector caseList = new Vector();
+	CaseElementNode caseElement;
+}
+{
+	caseElement = case_element()
+    	{
+    		caseList.add(caseElement);
+    	}
+    (
+    	<O_SEMICOLON> caseElement = case_element()
+    		{
+     			caseList.add(caseElement);
+    		}
+    )*
+
+    {
+    	return caseList;
+    }
+}
+
+CaseElementNode case_element() :
+{
+	CaseElementNode caseElement;
+	StatementNode stmtNode;
+  	Vector caseLabelList;
+  	Token token;
+}
+{
+  caseLabelList = case_labels() token = <O_COLON> stmtNode = stmt()
+  	{
+	    caseElement = new CaseElementNode(caseLabelList,stmtNode);
+	    caseElement.setLineNumber(token.beginLine);
+	    stmtNode.setParent(caseElement);
+	    for (int i = 0; i < caseLabelList.size(); i++) {
+	      ConstantNode constN = (ConstantNode)caseLabelList.elementAt(i);
+	      constN.setParent(caseElement);
+	    }
+
+	    return caseElement;
+  	}
+}
+
+Vector case_labels() :
+{
+	Vector caseLabelList = new Vector();
+	ConstantNode constNode = null;
+}
+{
+	constNode = constant()
+  		{
+   			caseLabelList.add(constNode);
+  		}
+  	(
+  		<O_COMMA> constNode = constant()
+  			{
+   				caseLabelList.add(constNode);
+  			}
+  	)*
+
+  	{
+  		return caseLabelList;
+  	}
+}
+
+Vector expr_list() :
+{
+	Vector exprList = new Vector();
+	ExpressionNode exprNode = null;
+}
+{
+	exprNode = expr()
+	  {
+	    exprList.add(exprNode);
+	  }
+  	(
+  		<O_COMMA> exprNode = expr()
+		  {
+		   exprList.add(exprNode);
+		  }
+  	)*
+
+  	{
+  		return exprList;
+  	}
+}
+
+ExpressionNode expr() :
+{
+	ExpressionNode exprNode;
+	ExpressionNode term1Node = null;
+ 	ExpressionNode exprPrimeNode = null;
+}
+{
+	term1Node = term1() exprPrimeNode = exprPrime()
+	{
+	    if (exprPrimeNode != null) {
+	      ((BinaryExpressionNode)exprPrimeNode).setLeftOperand(term1Node);
+	      exprNode = exprPrimeNode;
+	      term1Node.setParent(exprNode);
+	    }
+	    else
+	      exprNode = term1Node;
+	    exprNode.setLineNumber(term1Node.getLineNumber());
+
+	    return exprNode;
+	}
+}
+
+ExpressionNode exprPrime() :
+{
+	ExpressionNode exprPrimeNode;
+	ExpressionNode term1Node = null;
+ 	ExpressionNode epNode = null;
+ 	Token token;
+}
+{
+	(
+		token = <O_OR> term1Node = term1() epNode = exprPrime()
+		  	{
+			    if (epNode != null) {
+			      ((BinaryExpressionNode)epNode).setLeftOperand(term1Node);
+			      term1Node.setParent(epNode);
+			    }
+			    else
+			      epNode = term1Node;
+			    exprPrimeNode = new OrExpressionNode(epNode);
+			    exprPrimeNode.setLineNumber(token.beginLine);
+			    epNode.setParent(exprPrimeNode);
+		  	}
+  		| token = <O_AND> term1Node = term1() epNode = exprPrime()
+  			{
+			    if (epNode != null) {
+			      ((BinaryExpressionNode)epNode).setLeftOperand(term1Node);
+			      term1Node.setParent(epNode);
+		    	}
+			    else
+			      epNode = term1Node;
+			    exprPrimeNode = new AndExpressionNode(epNode);
+			    exprPrimeNode.setLineNumber(token.beginLine);
+			    epNode.setParent(exprPrimeNode);
+  			}
+  		|
+		  	{
+			   exprPrimeNode = null;
+			}
+	)
+
+	{
+		return exprPrimeNode;
+	}
+}
+
+ExpressionNode term1() :
+{
+	ExpressionNode term1Node;
+	ExpressionNode term2Node = null;
+ 	ExpressionNode term1PrimeNode = null;
+}
+{
+	term2Node = term2() term1PrimeNode = term1Prime()
+  		{
+		    if (term1PrimeNode != null) {
+		      ((BinaryExpressionNode)term1PrimeNode).setLeftOperand(term2Node);
+		      term1Node = term1PrimeNode;
+		      term2Node.setParent(term1Node);
+		    }
+		    else
+		      term1Node = term2Node;
+		    term1Node.setLineNumber(term2Node.getLineNumber());
+
+		    return term1Node;
+  		}
+}
+
+ExpressionNode term1Prime() :
+{
+	ExpressionNode term1PrimeNode;
+	ExpressionNode term2Node = null;
+  	ExpressionNode t1pNode = null;
+  	Token token;
+}
+{
+	(
+		token = <O_LT> term2Node = term2() t1pNode = term1Prime()
+  			{
+			    if (t1pNode != null) {
+			      ((BinaryExpressionNode)t1pNode).setLeftOperand(term2Node);
+			      term2Node.setParent(t1pNode);
+			    }
+			    else
+			      t1pNode = term2Node;
+			    term1PrimeNode = new LessThanExpressionNode(t1pNode);
+			    term1PrimeNode.setLineNumber(token.beginLine);
+			    t1pNode.setParent(term1PrimeNode);
+  			}
+  		| token = <O_LE> term2Node = term2() t1pNode = term1Prime()
+		  	{
+			    if (t1pNode != null) {
+			      ((BinaryExpressionNode)t1pNode).setLeftOperand(term2Node);
+			      term2Node.setParent(t1pNode);
+			    }
+			    else
+			      t1pNode = term2Node;
+			    term1PrimeNode = new LessEqualExpressionNode(t1pNode);
+			    term1PrimeNode.setLineNumber(token.beginLine);
+			    t1pNode.setParent(term1PrimeNode);
+		  	}
+  		| token = <O_GT> term2Node = term2() t1pNode = term1Prime()
+  			{
+			    if (t1pNode != null) {
+			      ((BinaryExpressionNode)t1pNode).setLeftOperand(term2Node);
+			      term2Node.setParent(t1pNode);
+			    }
+			    else
+			      t1pNode = term2Node;
+			    term1PrimeNode = new GreaterThanExpressionNode(t1pNode);
+			    term1PrimeNode.setLineNumber(token.beginLine);
+			    t1pNode.setParent(term1PrimeNode);
+  			}
+  		| token = <O_GE> term2Node = term2() t1pNode = term1Prime()
+  			{
+			    if (t1pNode != null) {
+			      ((BinaryExpressionNode)t1pNode).setLeftOperand(term2Node);
+			      term2Node.setParent(t1pNode);
+			    }
+			    else
+			      t1pNode = term2Node;
+			    term1PrimeNode = new GreaterEqualExpressionNode(t1pNode);
+			    term1PrimeNode.setLineNumber(token.beginLine);
+			    t1pNode.setParent(term1PrimeNode);
+  			}
+  		| token = <O_NE> term2Node = term2() t1pNode = term1Prime()
+  			{
+			    if (t1pNode != null) {
+			      ((BinaryExpressionNode)t1pNode).setLeftOperand(term2Node);
+			      term2Node.setParent(t1pNode);
+			    }
+			    else
+			      t1pNode = term2Node;
+			    term1PrimeNode = new NotEqualExpressionNode(t1pNode);
+			    term1PrimeNode.setLineNumber(token.beginLine);
+			    t1pNode.setParent(term1PrimeNode);
+  			}
+  		| token = <O_EQ> term2Node = term2() t1pNode = term1Prime()
+   			{
+			    if (t1pNode != null)
+			      ((BinaryExpressionNode)t1pNode).setLeftOperand(term2Node);
+			    else
+			      t1pNode = term2Node;
+			    term1PrimeNode = new EqualExpressionNode(t1pNode);
+			    term1PrimeNode.setLineNumber(token.beginLine);
+			    t1pNode.setParent(term1PrimeNode);
+  			}
+ 		|
+ 			{
+			  term1PrimeNode = null;
+			}
+	)
+
+	{
+		return term1PrimeNode;
+	}
+}
+
+ExpressionNode term2() :
+{
+	ExpressionNode term2Node;
+	ExpressionNode term3Node = null;
+ 	ExpressionNode term2PrimeNode = null;
+}
+{
+	term3Node = term3() term2PrimeNode = term2Prime()
+  		{
+		    if (term2PrimeNode != null) {
+		      ((BinaryExpressionNode)term2PrimeNode).setLeftOperand(term3Node);
+		      term2Node = term2PrimeNode;
+		      term3Node.setParent(term2PrimeNode);
+		    }
+		    else
+		      term2Node = term3Node;
+		    term2Node.setLineNumber(term3Node.getLineNumber());
+
+		    return term2Node;
+  		}
+}
+
+ExpressionNode term2Prime() :
+{
+	ExpressionNode term2PrimeNode;
+  	ExpressionNode term3Node = null;
+  	ExpressionNode t2pNode = null;
+  	Token token;
+}
+{
+	(
+		token = <O_PLUS> term3Node = term3() t2pNode = term2Prime()
+  			{
+			    if (t2pNode != null) {
+			      ((BinaryExpressionNode)t2pNode).setLeftOperand(term3Node);
+			      term3Node.setParent(t2pNode);
+			    }
+			    else
+			      t2pNode = term3Node;
+			    term2PrimeNode = new AddExpressionNode(t2pNode);
+			    term2PrimeNode.setLineNumber(token.beginLine);
+			    t2pNode.setParent(term2PrimeNode);
+  			}
+  		| token = <O_MINUS> term3Node = term3() t2pNode = term2Prime()
+  			{
+			    if (t2pNode != null) {
+			      ((BinaryExpressionNode)t2pNode).setLeftOperand(term3Node);
+			      term3Node.setParent(t2pNode);
+			    }
+			    else
+			      t2pNode = term3Node;
+			    term2PrimeNode = new SubtractExpressionNode(t2pNode);
+			    term2PrimeNode.setLineNumber(token.beginLine);
+			    t2pNode.setParent(term2PrimeNode);
+  			}
+  		|
+  			{
+    			term2PrimeNode = null;
+  			}
+	)
+
+	{
+		return term2PrimeNode;
+	}
+}
+
+ExpressionNode term3() :
+{
+	ExpressionNode term3Node;
+	ExpressionNode factorNode = null;
+  	ExpressionNode term3PrimeNode = null;
+}
+{
+	factorNode = factor() term3PrimeNode = term3Prime()
+  		{
+		    if (term3PrimeNode != null) {
+		      ((BinaryExpressionNode)term3PrimeNode).setLeftOperand(factorNode);
+		      term3Node = term3PrimeNode;
+		      factorNode.setParent(term3Node);
+		    }
+		    else
+		      term3Node = factorNode;
+		    term3Node.setLineNumber(factorNode.getLineNumber());
+
+		    return term3Node;
+  		}
+}
+
+ExpressionNode term3Prime() :
+{
+	ExpressionNode term3PrimeNode;
+	ExpressionNode factorNode = null;
+  	ExpressionNode t3pNode = null;
+  	Token token;
+}
+{
+	(
+		token = <O_TIMES> factorNode = factor() t3pNode = term3Prime()
+  			{
+			    if (t3pNode != null) {
+			      ((BinaryExpressionNode)t3pNode).setLeftOperand(factorNode);
+			      factorNode.setParent(t3pNode);
+			    }
+			    else
+			      t3pNode = factorNode;
+			    term3PrimeNode = new MultiplyExpressionNode(t3pNode);
+			    term3PrimeNode.setLineNumber(token.beginLine);
+			    t3pNode.setParent(term3PrimeNode);
+  			}
+  		| token = <O_MOD> factorNode = factor() t3pNode = term3Prime()
+  			{
+			    if (t3pNode != null) {
+			      ((BinaryExpressionNode)t3pNode).setLeftOperand(factorNode);
+			      factorNode.setParent(t3pNode);
+			    }
+			    else
+			      t3pNode = factorNode;
+			    term3PrimeNode = new ModExpressionNode(t3pNode);
+			    term3PrimeNode.setLineNumber(token.beginLine);
+			    t3pNode.setParent(term3PrimeNode);
+  			}
+  		|
+  			{
+   			term3PrimeNode = null;
+  			}
+	)
+
+	{
+		return term3PrimeNode;
+	}
+}
+
+ExpressionNode factor() :
+{
+	ExpressionNode factorNode ;
+	InvocationNode invocation = null;
+  	ExpressionNode fNode,exprNode = null;
+  	Vector exprList = null;
+  	Token token;
+}
+{
+	(
+		token = <O_IDENTIFIER> (
+								<O_LBRACKET> exprNode = expr() <O_RBRACKET>
+								| <O_LPAREN> (exprList = expr_list())? <O_RPAREN>
+								  {
+								  	if (exprList == null)
+								  	  exprList = new Vector();
+								  }
+							   )?
+			{
+				if (exprNode != null) {
+			    	factorNode = new ArrayReferenceNode(token.image,exprNode);
+			    	exprNode.setParent(factorNode);
+				} else if (exprList != null) {
+				   	invocation = new InvocationNode(token.image,exprList);
+				   	invocation.setLineNumber(token.beginLine);
+				   	for (int i = 0; i < exprList.size(); i++) {
+				     	ExpressionNode expr = (ExpressionNode)exprList.elementAt(i);
+				     	expr.setParent(invocation);
+				   	}
+					factorNode = new FunctionInvocationNode(invocation);
+				    invocation.setParent(factorNode);
+				}
+				else
+					factorNode = new ScalarReferenceNode(token.image);
+			    factorNode.setLineNumber(token.beginLine);
+	 		}
+  		| factorNode = constant()
+  		| factorNode = character()
+  		| token = <O_LPAREN> fNode = expr() <O_RPAREN>
+  			{
+			    factorNode = new ParenthesisNode(fNode);
+			    factorNode.setLineNumber(token.beginLine);
+			    fNode.setParent(factorNode);
+  			}
+  		| token = <O_NOT> fNode = factor()
+  			{
+			    factorNode = new NotExpressionNode(fNode);
+			    factorNode.setLineNumber(token.beginLine);
+			    fNode.setParent(factorNode);
+  			}
+	)
+
+	{
+		return factorNode;
+	}
+}
+
+VariableReferenceNode variable() :
+{
+	VariableReferenceNode varNode;
+	ExpressionNode exprNode = null;
+	Token name;
+}
+{
+	name = <O_IDENTIFIER> (<O_LBRACKET> exprNode = expr() <O_RBRACKET>)?
+		{
+			if (exprNode == null)
+				varNode = new ScalarReferenceNode(name.image);
+			else {
+		    	varNode = new ArrayReferenceNode(name.image,exprNode);
+		    	exprNode.setParent(varNode);
+			}
+		    varNode.setLineNumber(name.beginLine);
+
+			return varNode;
+ 		}
+}
+
+ConstantNode constant() :
+{
+	ConstantNode constNode;
+}
+{
+	(
+		constNode = integer()
+  		| constNode = floatConst()
+  	)
+
+  	{
+  		return constNode;
+  	}
+}
+
+IntegerConstNode integer() :
+{
+	IntegerConstNode intNode;
+	Token intConst;
+}
+{
+  intConst = <O_INT>
+   	{
+	    intNode = new IntegerConstNode(Integer.valueOf(intConst.image).intValue());
+	    intNode.setLineNumber(intConst.beginLine);
+	    return intNode;
+   	}
+}
+
+FloatConstNode floatConst() :
+{
+	FloatConstNode floatNode;
+	Token floatConst;
+}
+{
+	floatConst = <O_FLOATCON>
+   		{
+     		floatNode = new FloatConstNode(Float.valueOf(floatConst.image).floatValue());
+     		floatNode.setLineNumber(floatConst.beginLine);
+     		return floatNode;
+   		}
+}
+
+CharacterNode character() :
+{
+	CharacterNode charNode;
+	Token character;
+}
+{
+	 character = <O_CHAR>
+   		{
+     		charNode = new CharacterNode(character.image.charAt(1));
+     		charNode.setLineNumber(character.beginLine);
+     		return charNode;
+   		}
+}
+
+StringNode string() :
+{
+	StringNode stringNode;
+	Token string;
+}
+{
+	 string = <O_STRING>
+   		{
+		    int length = string.image.length();
+		    stringNode = new StringNode(string.image.substring(1,length-1));
+		    stringNode.setLineNumber(string.beginLine);
+		    return stringNode;
+   		}
+}
