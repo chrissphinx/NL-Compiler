@@ -2,12 +2,20 @@ package edu.wmich.cs.maccreery.ast;
 
 import java.util.Vector;
 
-/**
- * Created by sphinx on 9/12/15.
- */
 public class FunctionDeclNode extends SubProgramDeclNode
 {
-  public FunctionDeclNode(String image, Vector paramList, StandardTypeNode declType) {
-    super();
+  private Vector paramList;
+  private StandardTypeNode returnType;
+
+  public FunctionDeclNode(String image, Vector paramList, StandardTypeNode returnType) {
+    this.setImage(image);
+    this.setParamList(paramList);
+    this.setReturnType(returnType);
   }
+
+  public void setParamList(Vector paramList) { this.paramList = paramList; }
+  public Vector getParamList() { return paramList; }
+
+  public void setReturnType(StandardTypeNode returnType) { this.returnType = returnType; }
+  public StandardTypeNode getReturnType() { return returnType; }
 }

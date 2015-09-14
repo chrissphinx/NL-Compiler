@@ -1,9 +1,12 @@
 package edu.wmich.cs.maccreery.ast;
 
+import java.util.Vector;
+
 public abstract class ASTNode
 {
   private int lineNumber;
   private ASTNode parent;
+  protected Vector children;
 
   public void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
   public int getLineNumber() { return lineNumber; }
