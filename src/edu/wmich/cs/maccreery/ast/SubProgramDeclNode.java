@@ -11,9 +11,9 @@ public abstract class SubProgramDeclNode extends ASTNode
   public void setImage(String image) { this.image = image; }
   public String getImage() { return image; }
 
-  public void setBody(CompoundStatementNode body) { this.body = body; }
+  public void setBody(CompoundStatementNode body) { this.body = body; children.add(body); }
   public CompoundStatementNode getBody() { return body; }
 
-  public void setVariableDecls(Vector variableDecls) { this.variableDecls = variableDecls; }
+  public void setVariableDecls(Vector variableDecls) { this.variableDecls = variableDecls; children.add(variableDecls); }
   public Vector getVariableDecls() { return variableDecls; }
 }

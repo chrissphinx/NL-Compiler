@@ -1,8 +1,9 @@
 package edu.wmich.cs.maccreery.ast;
 
+import edu.wmich.cs.maccreery.visitor.Visitable;
 import java.util.Vector;
 
-public abstract class ASTNode
+public abstract class ASTNode implements Visitable
 {
   private int lineNumber;
   private ASTNode parent;
