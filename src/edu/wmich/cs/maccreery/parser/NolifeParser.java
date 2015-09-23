@@ -3,12 +3,11 @@
 package edu.wmich.cs.maccreery.parser;
 
 import edu.wmich.cs.maccreery.ast.*;
-import java.util.Vector;
 
 public class NolifeParser implements NolifeParserConstants {
 
-  static final public ProgramNode program() throws ParseException {Vector variableDecls = new Vector();
-        Vector subProgDecls = new Vector();
+  static final public ProgramNode program() throws ParseException {ASTVectorNode variableDecls = new ASTVectorNode();
+        ASTVectorNode subProgDecls = new ASTVectorNode();
         CompoundStatementNode body;
         Token prog,name;
     prog = jj_consume_token(O_PROGRAM);
@@ -53,16 +52,16 @@ ProgramNode programNode = new ProgramNode(name.image,variableDecls,subProgDecls,
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector decls() throws ParseException {Vector declList;
+  static final public ASTVectorNode decls() throws ParseException {ASTVectorNode declList;
     jj_consume_token(O_VAR);
     declList = decl_list();
 {if ("" != null) return declList;}
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector decl_list() throws ParseException {Vector declList = new Vector();
+  static final public ASTVectorNode decl_list() throws ParseException {ASTVectorNode declList = new ASTVectorNode();
         VariableDeclarationNode variableDecl;
-        Vector idList;
+        ASTVectorNode idList;
         TypeNode idType;
         Token semi;
     label_1:
@@ -89,7 +88,7 @@ variableDecl = new VariableDeclarationNode(idList,idType);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector identifier_list() throws ParseException {Vector idList = new Vector();
+  static final public ASTVectorNode identifier_list() throws ParseException {ASTVectorNode idList = new ASTVectorNode();
         String name;
         Token id;
     id = jj_consume_token(O_IDENTIFIER);
@@ -217,7 +216,7 @@ dimNode = new CharacterDimensionNode(lower.image.charAt(1),
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector subprogram_decls() throws ParseException {Vector subProgDecls = new Vector();
+  static final public ASTVectorNode subprogram_decls() throws ParseException {ASTVectorNode subProgDecls = new ASTVectorNode();
         SubProgramDeclNode subDecl = null;
     label_3:
     while (true) {
@@ -240,7 +239,7 @@ subProgDecls.add(subDecl);
   }
 
   static final public SubProgramDeclNode subprogram_decl() throws ParseException {SubProgramDeclNode declNode;
-        Vector variableDecls = new Vector();
+        ASTVectorNode variableDecls = new ASTVectorNode();
         CompoundStatementNode body;
     declNode = subprogram_head();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -266,7 +265,7 @@ declNode.setVariableDecls(variableDecls);
   }
 
   static final public SubProgramDeclNode subprogram_head() throws ParseException {SubProgramDeclNode declNode;
-        Vector paramList = new Vector();
+        ASTVectorNode paramList = new ASTVectorNode();
         StandardTypeNode declType;
         Token func,name;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -324,7 +323,7 @@ declNode = new ProcedureDeclNode(name.image,paramList);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector arguments() throws ParseException {Vector paramList;
+  static final public ASTVectorNode arguments() throws ParseException {ASTVectorNode paramList;
     jj_consume_token(O_LPAREN);
     paramList = parameter_list();
     jj_consume_token(O_RPAREN);
@@ -332,8 +331,8 @@ declNode = new ProcedureDeclNode(name.image,paramList);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector parameter_list() throws ParseException {Vector paramList = new Vector();
-        Vector idList;
+  static final public ASTVectorNode parameter_list() throws ParseException {ASTVectorNode paramList = new ASTVectorNode();
+        ASTVectorNode idList;
         TypeNode idType;
         VariableDeclarationNode paramDecl;
         Token token;
@@ -369,7 +368,7 @@ paramDecl = new VariableDeclarationNode(idList,idType);
   }
 
   static final public CompoundStatementNode compound_stmt() throws ParseException {CompoundStatementNode compoundStmt;
-        Vector stmtList;
+        ASTVectorNode stmtList;
         Token token;
     token = jj_consume_token(O_BEGIN);
     stmtList = stmt_list();
@@ -385,7 +384,7 @@ compoundStmt = new CompoundStatementNode(stmtList);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector stmt_list() throws ParseException {Vector stmtList = new Vector();
+  static final public ASTVectorNode stmt_list() throws ParseException {ASTVectorNode stmtList = new ASTVectorNode();
         StatementNode stmtNode;
     stmtNode = stmt();
 stmtList.add(stmtNode);
@@ -516,7 +515,7 @@ whileStmt = new WhileStatementNode(whileExpr,controlStmt);
   }
 
   static final public InvocationNode procedure_invocation() throws ParseException {InvocationNode invocation ;
-        Vector exprList = new Vector();
+        ASTVectorNode exprList = new ASTVectorNode();
         Token token;
     token = jj_consume_token(O_IDENTIFIER);
     jj_consume_token(O_LPAREN);
@@ -613,7 +612,7 @@ returnStmt = new ReturnStatementNode(exprNode);
 
   static final public CaseStatementNode case_stmt() throws ParseException {CaseStatementNode caseStatement;
         ExpressionNode caseExpr;
-        Vector caseList = new Vector();
+        ASTVectorNode caseList = new ASTVectorNode();
         Token token;
     token = jj_consume_token(O_CASE);
     caseExpr = expr();
@@ -641,7 +640,7 @@ caseStatement = new CaseStatementNode(caseExpr,caseList);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector cases() throws ParseException {Vector caseList = new Vector();
+  static final public ASTVectorNode cases() throws ParseException {ASTVectorNode caseList = new ASTVectorNode();
         CaseElementNode caseElement;
     caseElement = case_element();
 caseList.add(caseElement);
@@ -666,7 +665,7 @@ caseList.add(caseElement);
 
   static final public CaseElementNode case_element() throws ParseException {CaseElementNode caseElement;
         StatementNode stmtNode;
-        Vector caseLabelList;
+        ASTVectorNode caseLabelList;
         Token token;
     caseLabelList = case_labels();
     token = jj_consume_token(O_COLON);
@@ -683,7 +682,7 @@ caseElement = new CaseElementNode(caseLabelList,stmtNode);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector case_labels() throws ParseException {Vector caseLabelList = new Vector();
+  static final public ASTVectorNode case_labels() throws ParseException {ASTVectorNode caseLabelList = new ASTVectorNode();
         ConstantNode constNode = null;
     constNode = constant();
 caseLabelList.add(constNode);
@@ -706,7 +705,7 @@ caseLabelList.add(constNode);
     throw new Error("Missing return statement in function");
   }
 
-  static final public Vector expr_list() throws ParseException {Vector exprList = new Vector();
+  static final public ASTVectorNode expr_list() throws ParseException {ASTVectorNode exprList = new ASTVectorNode();
         ExpressionNode exprNode = null;
     exprNode = expr();
 exprList.add(exprNode);
@@ -1034,7 +1033,7 @@ term3PrimeNode = null;
   static final public ExpressionNode factor() throws ParseException {ExpressionNode factorNode ;
         InvocationNode invocation = null;
         ExpressionNode fNode,exprNode = null;
-        Vector exprList = null;
+        ASTVectorNode exprList = null;
         Token token;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case O_IDENTIFIER:{
@@ -1067,7 +1066,7 @@ term3PrimeNode = null;
           }
           jj_consume_token(O_RPAREN);
 if (exprList == null)
-                                                                          exprList = new Vector();
+                                                                          exprList = new ASTVectorNode();
           break;
           }
         default:

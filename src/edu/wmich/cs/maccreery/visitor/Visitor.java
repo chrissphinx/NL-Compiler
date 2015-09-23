@@ -10,8 +10,6 @@ public interface Visitor
   public void visit(ProgramNode programNode);
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
-  public void visit(StringNode stringNode);
-
   // DimensionNodes  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
   public void visit(CharacterDimensionNode characterDimensionNode);
   public void visit(IntegerDimensionNode integerDimensionNode);
@@ -22,5 +20,13 @@ public interface Visitor
   public void visit(ArrayTypeNode arrayTypeNode);
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
+  public void visit(StringNode stringNode);
+
+  // StatementNodes  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+  public void visit(CaseStatementNode caseStatementNode);
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
   public void visit(VariableDeclarationNode variableDeclarationNode);
+
+  public void visit(CaseElementNode caseElementNode);
 }
