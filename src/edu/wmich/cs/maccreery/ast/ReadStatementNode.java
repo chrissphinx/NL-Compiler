@@ -1,8 +1,20 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class ReadStatementNode extends StatementNode
+import edu.wmich.cs.maccreery.visitor.Visitable;
+import edu.wmich.cs.maccreery.visitor.Visitor;
+
+public class ReadStatementNode extends StatementNode implements Visitable
 {
-  public ReadStatementNode(VariableReferenceNode varNode) {
-    super();
+  private VariableReferenceNode variable;
+
+  public ReadStatementNode(VariableReferenceNode variable) {
+    this.setVariable(variable);
   }
+
+  @SuppressWarnings("unchecked")
+  public void setVariable(VariableReferenceNode variable) { this.variable = variable; children.add(variable); }
+  public VariableReferenceNode getVariable() { return variable; }
+
+  @Override
+  public void accept(Visitor v) { v.visit(this); }
 }

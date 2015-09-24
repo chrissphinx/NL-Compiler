@@ -24,6 +24,14 @@ public interface Visitor
 
   // StatementNodes  - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
   public void visit(CaseStatementNode caseStatementNode);
+  public void visit(ProcedureInvocationNode procedureInvocationNode);
+  public void visit(WhileStatementNode whileStatementNode);
+  public void visit(CompoundStatementNode compoundStatementNode);
+  public void visit(ReturnStatementNode returnStatementNode);
+  public void visit(ReadStatementNode readStatementNode);
+  public void visit(WriteStatementNode writeStatementNode);
+  public void visit(IfStatementNode ifStatementNode);
+  public void visit(AssignmentStatementNode assignmentStatementNode);
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
   public void visit(VariableDeclarationNode variableDeclarationNode);

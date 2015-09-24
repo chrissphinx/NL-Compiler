@@ -1,6 +1,20 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class CompoundStatementNode extends StatementNode
-{
+import edu.wmich.cs.maccreery.visitor.Visitable;
+import edu.wmich.cs.maccreery.visitor.Visitor;
 
+public class CompoundStatementNode extends StatementNode implements Visitable
+{
+  private ASTVectorNode<ASTNode> stmtList;
+
+  public CompoundStatementNode(ASTVectorNode<ASTNode> stmtList) {
+    this.setStmtList(stmtList);
+  }
+
+  @SuppressWarnings("unchecked")
+  public void setStmtList(ASTVectorNode<ASTNode> stmtList) { this.stmtList = stmtList; children.add(stmtList); }
+  public ASTVectorNode<ASTNode> getStmtList() { return stmtList; }
+
+  @Override
+  public void accept(Visitor v) { v.visit(this); }
 }

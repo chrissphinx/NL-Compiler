@@ -1,11 +1,20 @@
 package edu.wmich.cs.maccreery.ast;
 
-/**
- * Created by sphinx on 9/12/15.
- */
-public class WriteStatementNode extends StatementNode
+import edu.wmich.cs.maccreery.visitor.Visitable;
+import edu.wmich.cs.maccreery.visitor.Visitor;
+
+public class WriteStatementNode extends StatementNode implements Visitable
 {
+  private ASTNode writeExpr;
+
   public WriteStatementNode(ASTNode writeExpr) {
-    super();
+    this.setWriteExpr(writeExpr);
   }
+
+  @SuppressWarnings("unchecked")
+  public void setWriteExpr(ASTNode writeExpr) { this.writeExpr = writeExpr; children.add(writeExpr); }
+  public ASTNode getWriteExpr() { return writeExpr; }
+
+  @Override
+  public void accept(Visitor v) { v.visit(this); }
 }
