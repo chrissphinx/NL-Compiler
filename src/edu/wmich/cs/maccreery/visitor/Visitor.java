@@ -34,6 +34,45 @@ public interface Visitor
   public void visit(AssignmentStatementNode assignmentStatementNode);
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
 
+  // ExpressionNodes - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+  // VariableReferenceNodes  - - - - - - - - - - - - - - - - - - - - - - - - -/
+  public void visit(ScalarReferenceNode scalarReferenceNode);
+  public void visit(ArrayReferenceNode arrayReferenceNode);
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+  public void visit(NotExpressionNode notExpressionNode);
+  public void visit(ParenthesisNode parenthesisNode);
+
+  // BinaryExpressionNodes - - - - - - - - - - - - - - - - - - - - - - - - - -/
+  public void visit(SubtractExpressionNode subtractExpressionNode);
+  public void visit(AddExpressionNode addExpressionNode);
+  public void visit(ModExpressionNode modExpressionNode);
+
+  // BinaryComparisonNodes - - - - - - - - - - - - - - - - - - - - - - - - - -/
+  public void visit(GreaterThanExpressionNode greaterThanExpressionNode);
+  public void visit(NotEqualExpressionNode notEqualExpressionNode);
+  public void visit(LessEqualExpressionNode lessEqualExpressionNode);
+  public void visit(LessThanExpressionNode lessThanExpressionNode);
+  public void visit(EqualExpressionNode equalExpressionNode);
+  public void visit(GreaterEqualExpressionNode greaterEqualExpressionNode);
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+  public void visit(AndExpressionNode andExpressionNode);
+  public void visit(MultiplyExpressionNode multiplyExpressionNode);
+  public void visit(OrExpressionNode orExpressionNode);
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+  public void visit(FunctionInvocationNode functionInvocationNode);
+  public void visit(InvocationNode invocationNode);
+
+  // ConstantNodes - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+  public void visit(FloatConstNode floatConstNode);
+  public void visit(IntegerConstNode integerConstNode);
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
+  public void visit(CharacterNode characterNode);
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -/
+
   public void visit(VariableDeclarationNode variableDeclarationNode);
 
   public void visit(CaseElementNode caseElementNode);

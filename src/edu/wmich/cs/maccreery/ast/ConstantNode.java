@@ -1,6 +1,5 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class ConstantNode extends ExpressionNode
+public abstract class ConstantNode extends ExpressionNode
 {
-
 }

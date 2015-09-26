@@ -1,6 +1,5 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class ExpressionNode extends ASTNode
+public abstract class ExpressionNode extends ASTNode
 {
-
 }

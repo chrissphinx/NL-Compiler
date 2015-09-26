@@ -1,8 +1,14 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class OrExpressionNode extends BinaryExpressionNode
+import edu.wmich.cs.maccreery.visitor.Visitable;
+import edu.wmich.cs.maccreery.visitor.Visitor;
+
+public class OrExpressionNode extends BinaryExpressionNode implements Visitable
 {
-  public OrExpressionNode(ExpressionNode epNode) {
-    super();
+  public OrExpressionNode(ExpressionNode rightOperand) {
+    this.setRightOperand(rightOperand);
   }
+
+  @Override
+  public void accept(Visitor v) { v.visit(this); }
 }

@@ -1,6 +1,25 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class InvocationNode extends ExpressionNode
-{
+import edu.wmich.cs.maccreery.visitor.Visitable;
+import edu.wmich.cs.maccreery.visitor.Visitor;
 
+public class InvocationNode extends ExpressionNode implements Visitable
+{
+  private String image;
+  private ASTVectorNode<ASTNode> actualParameters;
+
+  public InvocationNode(String image, ASTVectorNode<ASTNode> actualParameters) {
+    this.setImage(image);
+    this.setActualParameters(actualParameters);
+  }
+
+  public void setImage(String image) { this.image = image; }
+  public String getImage() { return image; }
+
+  @SuppressWarnings("unchecked")
+  public void setActualParameters(ASTVectorNode<ASTNode> actualParameters) { this.actualParameters = actualParameters; children.add(actualParameters); }
+  public ASTVectorNode<ASTNode> getActualParameters() { return actualParameters; }
+
+  @Override
+  public void accept(Visitor v) { v.visit(this); }
 }

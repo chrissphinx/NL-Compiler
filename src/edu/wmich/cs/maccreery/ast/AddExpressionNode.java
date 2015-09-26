@@ -1,8 +1,14 @@
 package edu.wmich.cs.maccreery.ast;
 
-public class AddExpressionNode extends BinaryExpressionNode
+import edu.wmich.cs.maccreery.visitor.Visitable;
+import edu.wmich.cs.maccreery.visitor.Visitor;
+
+public class AddExpressionNode extends BinaryExpressionNode implements Visitable
 {
-  public AddExpressionNode(ExpressionNode t2pNode) {
-    super();
+  public AddExpressionNode(ExpressionNode rightOperand) {
+    this.setRightOperand(rightOperand);
   }
+
+  @Override
+  public void accept(Visitor v) { v.visit(this); }
 }
