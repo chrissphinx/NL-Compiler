@@ -9,6 +9,7 @@ public class FunctionDeclNode extends SubProgramDeclNode implements Visitable
   private StandardTypeNode returnType;
 
   public FunctionDeclNode(String image, ASTVectorNode<ASTNode> paramList, StandardTypeNode returnType) {
+    children = new ASTVectorNode<ASTNode>();
     this.setImage(image);
     this.setParamList(paramList);
     this.setReturnType(returnType);

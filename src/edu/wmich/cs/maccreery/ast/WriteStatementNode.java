@@ -8,6 +8,7 @@ public class WriteStatementNode extends StatementNode implements Visitable
   private ASTNode writeExpr;
 
   public WriteStatementNode(ASTNode writeExpr) {
+    children = new ASTVectorNode<ASTNode>();
     this.setWriteExpr(writeExpr);
   }
 

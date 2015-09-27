@@ -202,9 +202,9 @@
   <target name="init" description="Build initialization">
   </target>
 
-  <target name="clean" depends="clean.module.nl_compiler, clean.module.parser" description="cleanup all"/>
+  <target name="clean" depends="clean.module.nl_compiler" description="cleanup all"/>
   
-  <target name="build.modules" depends="init, clean, compile.module.nl_compiler, compile.module.parser" description="build all modules"/>
+  <target name="build.modules" depends="init, clean, compile.module.nl_compiler" description="build all modules"/>
   
   <target name="all" depends="build.modules" description="build all"/>
 </project>

@@ -8,6 +8,7 @@ public class ProcedureDeclNode extends SubProgramDeclNode implements Visitable
   private ASTVectorNode<ASTNode> paramList;
 
   public ProcedureDeclNode(String image, ASTVectorNode<ASTNode> paramList) {
+    children = new ASTVectorNode<ASTNode>();
     this.setImage(image);
     this.setParamList(paramList);
   }

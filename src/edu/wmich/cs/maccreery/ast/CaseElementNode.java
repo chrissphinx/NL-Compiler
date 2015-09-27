@@ -9,6 +9,7 @@ public class CaseElementNode extends ASTNode implements Visitable
   private StatementNode stmtNode;
 
   public CaseElementNode(ASTVectorNode<ASTNode> caseLabelList, StatementNode stmtNode) {
+    children = new ASTVectorNode<ASTNode>();
     this.setCaseLabelList(caseLabelList);
     this.setStmtNode(stmtNode);
   }

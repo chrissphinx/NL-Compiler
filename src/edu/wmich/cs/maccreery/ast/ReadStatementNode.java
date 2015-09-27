@@ -8,6 +8,7 @@ public class ReadStatementNode extends StatementNode implements Visitable
   private VariableReferenceNode variable;
 
   public ReadStatementNode(VariableReferenceNode variable) {
+    children = new ASTVectorNode<ASTNode>();
     this.setVariable(variable);
   }
 

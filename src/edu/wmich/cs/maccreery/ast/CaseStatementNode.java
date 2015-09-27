@@ -9,6 +9,7 @@ public class CaseStatementNode extends StatementNode implements Visitable
   private ExpressionNode caseExpr;
 
   public CaseStatementNode(ExpressionNode caseExpr, ASTVectorNode<ASTNode> caseList) {
+    children = new ASTVectorNode<ASTNode>();
     this.setCaseList(caseList);
     this.setCaseExpr(caseExpr);
   }

@@ -9,6 +9,7 @@ public class ArrayTypeNode extends TypeNode implements Visitable
   private DimensionNode dimension;
 
   public ArrayTypeNode(DimensionNode dimension, StandardTypeNode basicType) {
+    children = new ASTVectorNode<ASTNode>();
     this.setBasicType(basicType);
     this.setDimension(dimension);
   }

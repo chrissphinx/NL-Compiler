@@ -8,6 +8,7 @@ public class CompoundStatementNode extends StatementNode implements Visitable
   private ASTVectorNode<ASTNode> stmtList;
 
   public CompoundStatementNode(ASTVectorNode<ASTNode> stmtList) {
+    children = new ASTVectorNode<ASTNode>();
     this.setStmtList(stmtList);
   }
 

@@ -9,6 +9,7 @@ public class VariableDeclarationNode extends ASTNode implements Visitable
   private TypeNode idType;
 
   public VariableDeclarationNode(ASTVectorNode<ASTNode> idList, TypeNode idType) {
+    children = new ASTVectorNode<ASTNode>();
     this.setVariableList(idList);
     this.setType(idType);
   }

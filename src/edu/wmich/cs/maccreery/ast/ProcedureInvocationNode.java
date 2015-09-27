@@ -8,6 +8,7 @@ public class ProcedureInvocationNode extends StatementNode implements Visitable
   private InvocationNode invocation;
 
   public ProcedureInvocationNode(InvocationNode invocation) {
+    children = new ASTVectorNode<ASTNode>();
     this.setInvocation(invocation);
   }
 

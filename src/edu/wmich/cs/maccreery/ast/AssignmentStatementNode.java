@@ -9,6 +9,7 @@ public class AssignmentStatementNode extends StatementNode implements Visitable
   private ExpressionNode right;
 
   public AssignmentStatementNode(VariableReferenceNode left, ExpressionNode right) {
+    children = new ASTVectorNode<ASTNode>();
     this.setLeft(left);
     this.setRight(right);
   }

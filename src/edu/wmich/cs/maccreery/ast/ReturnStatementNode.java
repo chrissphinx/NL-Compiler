@@ -8,6 +8,7 @@ public class ReturnStatementNode extends StatementNode implements Visitable
   private ExpressionNode returnExpr;
 
   public ReturnStatementNode(ExpressionNode returnExpr) {
+    children = new ASTVectorNode<ASTNode>();
     this.setReturnExpr(returnExpr);
   }
 

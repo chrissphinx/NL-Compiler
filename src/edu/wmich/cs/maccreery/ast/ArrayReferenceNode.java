@@ -8,6 +8,7 @@ public class ArrayReferenceNode extends VariableReferenceNode implements Visitab
   private ExpressionNode subscript;
 
   public ArrayReferenceNode(String image, ExpressionNode subscript) {
+    children = new ASTVectorNode<ASTNode>();
     this.setImage(image);
     this.setSubscript(subscript);
   }

@@ -6,6 +6,7 @@ import edu.wmich.cs.maccreery.visitor.Visitor;
 public class GreaterThanExpressionNode extends BinaryComparisonNode implements Visitable
 {
   public GreaterThanExpressionNode(ExpressionNode rightOperand) {
+    children = new ASTVectorNode<ASTNode>();
     this.setRightOperand(rightOperand);
   }
 

@@ -8,6 +8,7 @@ public class ProgramNode extends SubProgramDeclNode implements Visitable
   private ASTVectorNode<ASTNode> subProgDecls;
 
   public ProgramNode(String image, ASTVectorNode<ASTNode> variableDecls, ASTVectorNode<ASTNode> subProgDecls, CompoundStatementNode body) {
+    children = new ASTVectorNode<ASTNode>();
     this.setImage(image);
     this.setVariableDecls(variableDecls);
     this.setSubProgDecls(subProgDecls);

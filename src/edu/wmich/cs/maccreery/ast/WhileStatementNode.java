@@ -9,6 +9,7 @@ public class WhileStatementNode extends StatementNode implements Visitable
   private StatementNode controlledStmt;
 
   public WhileStatementNode(ExpressionNode whileExpr, StatementNode controlledStmt) {
+    children = new ASTVectorNode<ASTNode>();
     this.setWhileExpr(whileExpr);
     this.setControlledStmt(controlledStmt);
   }

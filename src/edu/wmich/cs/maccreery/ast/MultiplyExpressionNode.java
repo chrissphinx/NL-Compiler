@@ -6,6 +6,7 @@ import edu.wmich.cs.maccreery.visitor.Visitor;
 public class MultiplyExpressionNode extends BinaryExpressionNode implements Visitable
 {
   public MultiplyExpressionNode(ExpressionNode rightOperand) {
+    children = new ASTVectorNode<ASTNode>();
     this.setRightOperand(rightOperand);
   }
 

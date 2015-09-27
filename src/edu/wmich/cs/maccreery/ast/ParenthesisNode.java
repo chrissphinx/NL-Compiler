@@ -8,6 +8,7 @@ public class ParenthesisNode extends ExpressionNode implements Visitable
   private ExpressionNode exprNode;
 
   public ParenthesisNode(ExpressionNode exprNode) {
+    children = new ASTVectorNode<ASTNode>();
     this.setExprNode(exprNode);
   }
 

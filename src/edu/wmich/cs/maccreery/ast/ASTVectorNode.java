@@ -14,7 +14,6 @@ public class ASTVectorNode<E> extends ASTNode implements List<E>
   private int capacityIncrement;
 
   public ASTVectorNode(int initialCapacity, int capacityIncrement) {
-    super();
     if (initialCapacity < 0)
       throw new IllegalArgumentException("Illegal Capacity: "+ initialCapacity);
     this.elementData = new Object[initialCapacity];

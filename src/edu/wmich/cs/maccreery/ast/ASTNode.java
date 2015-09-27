@@ -1,13 +1,12 @@
 package edu.wmich.cs.maccreery.ast;
 
 import edu.wmich.cs.maccreery.visitor.Visitable;
-import java.util.Vector;
 
 public abstract class ASTNode implements Visitable
 {
   private int lineNumber;
   private ASTNode parent;
-  protected Vector children;
+  protected ASTVectorNode<ASTNode> children;
 
   public void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
   public int getLineNumber() { return lineNumber; }

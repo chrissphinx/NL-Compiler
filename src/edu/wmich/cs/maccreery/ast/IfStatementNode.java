@@ -10,6 +10,7 @@ public class IfStatementNode extends StatementNode implements Visitable
   private StatementNode elseStmt;
 
   public IfStatementNode(ExpressionNode testExpr, StatementNode thenStmt, StatementNode elseStmt) {
+    children = new ASTVectorNode<ASTNode>();
     this.setTestExpr(testExpr);
     this.setThenStmt(thenStmt);
     this.setElseStmt(elseStmt);

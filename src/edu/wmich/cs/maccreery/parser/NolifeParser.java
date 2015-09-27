@@ -3,6 +3,7 @@
 package edu.wmich.cs.maccreery.parser;
 
 import edu.wmich.cs.maccreery.ast.*;
+import edu.wmich.cs.maccreery.visitor.TypeTable;
 
 public class NolifeParser implements NolifeParserConstants {
 

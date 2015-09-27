@@ -8,6 +8,7 @@ public class FunctionInvocationNode extends ExpressionNode implements Visitable
   private InvocationNode invocation;
 
   public FunctionInvocationNode(InvocationNode invocation) {
+    children = new ASTVectorNode<ASTNode>();
     this.setInvocation(invocation);
   }
 

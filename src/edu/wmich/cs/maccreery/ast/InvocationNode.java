@@ -9,6 +9,7 @@ public class InvocationNode extends ExpressionNode implements Visitable
   private ASTVectorNode<ASTNode> actualParameters;
 
   public InvocationNode(String image, ASTVectorNode<ASTNode> actualParameters) {
+    children = new ASTVectorNode<ASTNode>();
     this.setImage(image);
     this.setActualParameters(actualParameters);
   }

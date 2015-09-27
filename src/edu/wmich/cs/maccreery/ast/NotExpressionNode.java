@@ -8,6 +8,7 @@ public class NotExpressionNode extends ExpressionNode implements Visitable
   private ExpressionNode operand;
 
   public NotExpressionNode(ExpressionNode operand) {
+    children = new ASTVectorNode<ASTNode>();
     this.setOperand(operand);
   }
 
