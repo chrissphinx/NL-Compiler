@@ -22,5 +22,5 @@ public class StandardTypeNode extends TypeNode implements Visitable
   public String toString() { return TypeTable.getBasicTypeString(basicType); }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

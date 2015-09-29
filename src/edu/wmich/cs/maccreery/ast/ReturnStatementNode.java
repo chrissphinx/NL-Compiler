@@ -17,5 +17,5 @@ public class ReturnStatementNode extends StatementNode implements Visitable
   public ExpressionNode getReturnExpr() { return returnExpr; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

@@ -15,5 +15,5 @@ public class FloatConstNode extends ConstantNode implements Visitable
   public float getConstant() { return constant; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

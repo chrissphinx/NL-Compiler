@@ -21,5 +21,5 @@ public class VariableDeclarationNode extends ASTNode implements Visitable
   public TypeNode getType() { return idType; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

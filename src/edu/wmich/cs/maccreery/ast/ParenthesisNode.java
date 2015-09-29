@@ -17,5 +17,5 @@ public class ParenthesisNode extends ExpressionNode implements Visitable
   public ExpressionNode getExprNode() { return exprNode; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

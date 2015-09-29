@@ -1,5 +1,6 @@
 package edu.wmich.cs.maccreery.ast;
 
+import edu.wmich.cs.maccreery.visitor.SymbolTable;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
@@ -19,5 +20,8 @@ public class ProgramNode extends SubProgramDeclNode implements Visitable
   public ASTVectorNode<ASTNode> getSubProgDecls() { return subProgDecls; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public void addToSymTable(SymbolTable symTable) {}
+
+  @Override
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

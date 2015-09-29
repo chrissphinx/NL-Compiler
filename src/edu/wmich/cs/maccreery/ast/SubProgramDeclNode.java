@@ -1,5 +1,7 @@
 package edu.wmich.cs.maccreery.ast;
 
+import edu.wmich.cs.maccreery.visitor.SymbolTable;
+
 public abstract class SubProgramDeclNode extends ASTNode
 {
   private String image;
@@ -14,4 +16,6 @@ public abstract class SubProgramDeclNode extends ASTNode
 
   public void setVariableDecls(ASTVectorNode<ASTNode> variableDecls) { this.variableDecls = variableDecls; children.add(variableDecls); }
   public ASTVectorNode<ASTNode> getVariableDecls() { return variableDecls; }
+
+  public abstract void addToSymTable(SymbolTable symTable);
 }

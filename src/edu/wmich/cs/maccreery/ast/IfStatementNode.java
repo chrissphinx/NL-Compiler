@@ -29,5 +29,5 @@ public class IfStatementNode extends StatementNode implements Visitable
   public StatementNode getElseStmt() { return elseStmt; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

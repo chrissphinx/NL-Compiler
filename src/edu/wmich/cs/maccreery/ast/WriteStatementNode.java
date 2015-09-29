@@ -17,5 +17,5 @@ public class WriteStatementNode extends StatementNode implements Visitable
   public ASTNode getWriteExpr() { return writeExpr; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

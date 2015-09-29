@@ -22,5 +22,5 @@ public class InvocationNode extends ExpressionNode implements Visitable
   public ASTVectorNode<ASTNode> getActualParameters() { return actualParameters; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

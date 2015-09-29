@@ -11,5 +11,5 @@ public class NotEqualExpressionNode extends BinaryComparisonNode implements Visi
   }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

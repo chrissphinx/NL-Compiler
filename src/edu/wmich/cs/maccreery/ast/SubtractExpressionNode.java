@@ -11,5 +11,5 @@ public class SubtractExpressionNode extends BinaryExpressionNode implements Visi
   }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

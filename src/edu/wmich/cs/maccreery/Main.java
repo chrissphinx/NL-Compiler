@@ -4,6 +4,7 @@ import edu.wmich.cs.maccreery.ast.AbstractSyntaxTree;
 import edu.wmich.cs.maccreery.ast.ProgramNode;
 import edu.wmich.cs.maccreery.parser.NolifeParser;
 import edu.wmich.cs.maccreery.parser.ParseException;
+import edu.wmich.cs.maccreery.visitor.TypeVisitor;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -32,6 +33,10 @@ public class Main
     }
 
     AbstractSyntaxTree ast = new AbstractSyntaxTree(program);
+
+    TypeVisitor typeVisitor = new TypeVisitor();
+
+    ast.getRoot().accept(typeVisitor);
 
     System.exit(0);
   }

@@ -2,212 +2,262 @@ package edu.wmich.cs.maccreery.visitor;
 
 import edu.wmich.cs.maccreery.ast.*;
 
-public class TypeVisitor implements Visitor
+public class TypeVisitor implements Visitor<Integer>
 {
-  private SymbolTable symbolTable;
+  private SymbolTable symTable;
 
-  public TypeVisitor(AbstractSyntaxTree ast) {
-    symbolTable = new SymbolTable();
+  public TypeVisitor() {
+    symTable = new SymbolTable();
     TypeTable.initTypeTable(100);
   }
 
   @Override
-  public void visit(ProcedureDeclNode procedureDeclNode) {
-
+  public Integer visit(ProcedureDeclNode procedureDeclNode) {
+    return null;
   }
 
   @Override
-  public void visit(FunctionDeclNode functionDeclNode) {
-
+  public Integer visit(FunctionDeclNode functionDeclNode) {
+    return null;
   }
 
   @Override
-  public void visit(ProgramNode programNode) {
+  public Integer visit(ProgramNode programNode) {
+    symTable.beginScope();
 
+    ASTVectorNode<ASTNode> variableDecls = programNode.getVariableDecls();
+
+    for (int i = 0; i < variableDecls.size(); i++)
+      variableDecls.elementAt(i).accept(this);
+
+    ASTVectorNode<ASTNode> subProgDecls = programNode.getSubProgDecls();
+
+    for (int i = 0; i < subProgDecls.size(); i++) {
+      SubProgramDeclNode subProg = (SubProgramDeclNode)subProgDecls.elementAt(i);
+      subProg.addToSymTable(symTable);
+    }
+
+    for (int i = 0; i < subProgDecls.size(); i++) {
+      subProgDecls.elementAt(i).accept(this);
+    }
+
+    programNode.getBody().accept(this);
+
+    if (programNode.containsReturnStatement(programNode.getBody())) {
+      System.err.println("Line "+programNode.getLineNumber()+": main body contains return statement");
+    }
+
+    symTable.endScope(programNode.getImage());
+
+    programNode.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
-  public void visit(CharacterDimensionNode characterDimensionNode) {
-
+  public Integer visit(CharacterDimensionNode characterDimensionNode) {
+    return null;
   }
 
   @Override
-  public void visit(IntegerDimensionNode integerDimensionNode) {
-
+  public Integer visit(IntegerDimensionNode integerDimensionNode) {
+    return null;
   }
 
   @Override
-  public void visit(StandardTypeNode standardTypeNode) {
-
+  public Integer visit(StandardTypeNode standardTypeNode) {
+    return null;
   }
 
   @Override
-  public void visit(ArrayTypeNode arrayTypeNode) {
-
+  public Integer visit(ArrayTypeNode arrayTypeNode) {
+    return null;
   }
 
   @Override
-  public void visit(StringNode stringNode) {
-
+  public Integer visit(StringNode stringNode) {
+    return null;
   }
 
   @Override
-  public void visit(CaseStatementNode caseStatementNode) {
-
+  public Integer visit(CaseStatementNode caseStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(ProcedureInvocationNode procedureInvocationNode) {
-
+  public Integer visit(ProcedureInvocationNode procedureInvocationNode) {
+    return null;
   }
 
   @Override
-  public void visit(WhileStatementNode whileStatementNode) {
-
+  public Integer visit(WhileStatementNode whileStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(CompoundStatementNode compoundStatementNode) {
-
+  public Integer visit(CompoundStatementNode compoundStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(ReturnStatementNode returnStatementNode) {
-
+  public Integer visit(ReturnStatementNode returnStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(ReadStatementNode readStatementNode) {
-
+  public Integer visit(ReadStatementNode readStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(WriteStatementNode writeStatementNode) {
-
+  public Integer visit(WriteStatementNode writeStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(IfStatementNode ifStatementNode) {
-
+  public Integer visit(IfStatementNode ifStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(AssignmentStatementNode assignmentStatementNode) {
-
+  public Integer visit(AssignmentStatementNode assignmentStatementNode) {
+    return null;
   }
 
   @Override
-  public void visit(ScalarReferenceNode scalarReferenceNode) {
-
+  public Integer visit(ScalarReferenceNode scalarReferenceNode) {
+    return null;
   }
 
   @Override
-  public void visit(ArrayReferenceNode arrayReferenceNode) {
-
+  public Integer visit(ArrayReferenceNode arrayReferenceNode) {
+    return null;
   }
 
   @Override
-  public void visit(NotExpressionNode notExpressionNode) {
-
+  public Integer visit(NotExpressionNode notExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(ParenthesisNode parenthesisNode) {
-
+  public Integer visit(ParenthesisNode parenthesisNode) {
+    return null;
   }
 
   @Override
-  public void visit(SubtractExpressionNode subtractExpressionNode) {
-
+  public Integer visit(SubtractExpressionNode subtractExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(AddExpressionNode addExpressionNode) {
-
+  public Integer visit(AddExpressionNode addExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(ModExpressionNode modExpressionNode) {
-
+  public Integer visit(ModExpressionNode modExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(GreaterThanExpressionNode greaterThanExpressionNode) {
-
+  public Integer visit(GreaterThanExpressionNode greaterThanExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(NotEqualExpressionNode notEqualExpressionNode) {
-
+  public Integer visit(NotEqualExpressionNode notEqualExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(LessEqualExpressionNode lessEqualExpressionNode) {
-
+  public Integer visit(LessEqualExpressionNode lessEqualExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(LessThanExpressionNode lessThanExpressionNode) {
-
+  public Integer visit(LessThanExpressionNode lessThanExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(EqualExpressionNode equalExpressionNode) {
-
+  public Integer visit(EqualExpressionNode equalExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(GreaterEqualExpressionNode greaterEqualExpressionNode) {
-
+  public Integer visit(GreaterEqualExpressionNode greaterEqualExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(AndExpressionNode andExpressionNode) {
-
+  public Integer visit(AndExpressionNode andExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(MultiplyExpressionNode multiplyExpressionNode) {
-
+  public Integer visit(MultiplyExpressionNode multiplyExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(OrExpressionNode orExpressionNode) {
-
+  public Integer visit(OrExpressionNode orExpressionNode) {
+    return null;
   }
 
   @Override
-  public void visit(FunctionInvocationNode functionInvocationNode) {
-
+  public Integer visit(FunctionInvocationNode functionInvocationNode) {
+    return null;
   }
 
   @Override
-  public void visit(InvocationNode invocationNode) {
-
+  public Integer visit(InvocationNode invocationNode) {
+    return null;
   }
 
   @Override
-  public void visit(FloatConstNode floatConstNode) {
-
+  public Integer visit(FloatConstNode floatConstNode) {
+    return null;
   }
 
   @Override
-  public void visit(IntegerConstNode integerConstNode) {
-
+  public Integer visit(IntegerConstNode integerConstNode) {
+    return null;
   }
 
   @Override
-  public void visit(CharacterNode characterNode) {
-
+  public Integer visit(CharacterNode characterNode) {
+    return null;
   }
 
   @Override
-  public void visit(VariableDeclarationNode variableDeclarationNode) {
+  public Integer visit(VariableDeclarationNode variableDeclarationNode) {
 
+    TypeNode idType = variableDeclarationNode.getType();
+
+    int typeVal = TypeTable.getTypeVal(idType.toString());
+
+    ASTVectorNode<ASTNode> idList = variableDeclarationNode.getVariableList();
+
+    for (int i = 0; i < idList.size(); i++) {
+      String id = idList.elementAt(i).toString();
+
+      SymbolTableEntry entry;
+      if ((entry = symTable.add(id, idType)) == null) {
+        System.err.println("Line "+variableDeclarationNode.getLineNumber()+": Duplicate variable declaration: "+id);
+        AbstractSyntaxTree.setError();
+      }
+      else {
+        entry.setDataType(typeVal);
+        entry.setNestingLevel(symTable.getCurrentLevel());
+        idType.setRealType(typeVal);
+      }
+    }
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
-  public void visit(CaseElementNode caseElementNode) {
-
+  public Integer visit(CaseElementNode caseElementNode) {
+    return null;
   }
 }

@@ -23,5 +23,5 @@ public class WhileStatementNode extends StatementNode implements Visitable
   public StatementNode getControlledStmt() { return controlledStmt; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

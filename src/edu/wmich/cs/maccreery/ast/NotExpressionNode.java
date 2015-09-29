@@ -17,5 +17,5 @@ public class NotExpressionNode extends ExpressionNode implements Visitable
   public ExpressionNode getOperand() { return operand; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

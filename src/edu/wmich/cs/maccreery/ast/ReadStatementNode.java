@@ -17,5 +17,5 @@ public class ReadStatementNode extends StatementNode implements Visitable
   public VariableReferenceNode getVariable() { return variable; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

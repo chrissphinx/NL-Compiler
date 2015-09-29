@@ -16,5 +16,5 @@ public class ProcedureInvocationNode extends StatementNode implements Visitable
   public InvocationNode getInvocation() { return invocation; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

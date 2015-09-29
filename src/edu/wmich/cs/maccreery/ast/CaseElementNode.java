@@ -21,5 +21,5 @@ public class CaseElementNode extends ASTNode implements Visitable
   public StatementNode getStmtNode() { return stmtNode; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

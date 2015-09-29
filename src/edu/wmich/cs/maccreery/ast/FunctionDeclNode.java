@@ -1,7 +1,6 @@
 package edu.wmich.cs.maccreery.ast;
 
-import edu.wmich.cs.maccreery.visitor.Visitable;
-import edu.wmich.cs.maccreery.visitor.Visitor;
+import edu.wmich.cs.maccreery.visitor.*;
 
 public class FunctionDeclNode extends SubProgramDeclNode implements Visitable
 {
@@ -22,5 +21,21 @@ public class FunctionDeclNode extends SubProgramDeclNode implements Visitable
   public StandardTypeNode getReturnType() { return returnType; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
+
+  @Override
+  public void addToSymTable(SymbolTable symTable) {
+    SymbolTableEntry entry = symTable.add(this.getImage(), new StandardTypeNode(TypeTable.getTypeVal(toString())));
+
+    if (entry == null) {
+      System.err.println("Line "+this.getLineNumber()+": Redeclaration of variable: "+this.getImage());
+      AbstractSyntaxTree.setError();
+      this.setRealType(TypeTable.ANY_TYPE);
+    }
+    else {
+      int typeVal = TypeTable.getTypeVal(toString());
+      entry.setDataType(typeVal);
+      this.setRealType(typeVal);
+    }
+  }
 }

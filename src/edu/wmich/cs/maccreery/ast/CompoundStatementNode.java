@@ -17,5 +17,5 @@ public class CompoundStatementNode extends StatementNode implements Visitable
   public ASTVectorNode<ASTNode> getStmtList() { return stmtList; }
 
   @Override
-  public void accept(Visitor v) { v.visit(this); }
+  public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }
