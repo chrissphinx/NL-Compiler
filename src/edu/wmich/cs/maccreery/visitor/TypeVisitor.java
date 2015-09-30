@@ -98,7 +98,15 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(CompoundStatementNode compoundStatementNode) {
-    return null;
+    Vector stmtList = compoundStatementNode.getStmtList();
+
+    for (int i = 0; i < stmtList.size(); i++) {
+      ((ASTNode) stmtList.elementAt(i)).accept(this);
+    }
+
+    compoundStatementNode.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
@@ -108,12 +116,22 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(ReadStatementNode readStatementNode) {
-    return null;
+    VariableReferenceNode variable = readStatementNode.getVariable();
+
+    variable.setConvertedType(variable.accept(this));
+
+    variable.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
   public Integer visit(WriteStatementNode writeStatementNode) {
-    return null;
+    writeStatementNode.setConvertedType(writeStatementNode.getWriteExpr().accept(this));
+
+    writeStatementNode.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
@@ -123,12 +141,55 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(AssignmentStatementNode assignmentStatementNode) {
-    return null;
+    VariableReferenceNode lhs = assignmentStatementNode.getLeft();
+    ExpressionNode rhs = assignmentStatementNode.getRight();
+
+    int lhsType = lhs.accept(this);
+    int rhsType = rhs.accept(this);
+
+    int realType = TypeTable.getResultAssignmentType(lhsType,rhsType);
+
+    if (realType == TypeTable.ERROR_TYPE) {
+      System.err.println("Line "+assignmentStatementNode.getLineNumber()+": Type mismatch in assignment statement");
+      AbstractSyntaxTree.setError();
+      assignmentStatementNode.setConvertedType(TypeTable.ANY_TYPE);
+    }
+    else
+      assignmentStatementNode.setConvertedType(lhsType);
+
+    int convertedType = assignmentStatementNode.getConvertedType();
+    rhs.setConvertedType(convertedType);
+    lhs.setConvertedType(convertedType);
+
+    assignmentStatementNode.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
   public Integer visit(ScalarReferenceNode scalarReferenceNode) {
-    return null;
+    String name = scalarReferenceNode.getImage();
+
+    SymbolTableEntry entry = symTable.getEntry(name);
+
+    if (entry == null) {
+      System.err.println("Line "+scalarReferenceNode.getLineNumber()+": Undeclared variable "+name);
+      AbstractSyntaxTree.setError();
+      scalarReferenceNode.setRealType(TypeTable.ANY_TYPE);
+    }
+    else {
+      scalarReferenceNode.setRealType(entry.getDataType());
+      scalarReferenceNode.setNestingLevel(entry.getNestingLevel());
+    }
+
+    // SubProgramDeclNode subProg = getContainingSubProgram();
+
+    //
+    // if this is a global variable accessed outside the main procedure
+    // then it must be allocated to the stack
+    //
+
+    return scalarReferenceNode.getRealType();
   }
 
   @Override
@@ -153,7 +214,41 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(AddExpressionNode addExpressionNode) {
-    return null;
+    ExpressionNode leftOperand = addExpressionNode.getLeftOperand();
+    ExpressionNode rightOperand = addExpressionNode.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    addExpressionNode.setRealType(TypeTable.getResultArithmeticType(lhsType, rhsType));
+
+    if (addExpressionNode.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + addExpressionNode.getLineNumber() +
+              ": Type mismatch in addition operation");
+      AbstractSyntaxTree.setError();
+      addExpressionNode.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (addExpressionNode.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (addExpressionNode.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(addExpressionNode.getRealType());
+      rightOperand.setConvertedType(addExpressionNode.getRealType());
+    }
+
+    return addExpressionNode.getRealType();
   }
 
   @Override
@@ -193,7 +288,41 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(AndExpressionNode andExpressionNode) {
-    return null;
+    ExpressionNode leftOperand = andExpressionNode.getLeftOperand();
+    ExpressionNode rightOperand = andExpressionNode.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    andExpressionNode.setRealType(TypeTable.getResultBooleanType(lhsType, rhsType));
+
+    if (andExpressionNode.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + andExpressionNode.getLineNumber() +
+              ": Type mismatch in AND operation");
+      AbstractSyntaxTree.setError();
+      andExpressionNode.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (andExpressionNode.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.FLOAT_TYPE)
+        leftOperand.setConvertedType(TypeTable.INT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (andExpressionNode.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.FLOAT_TYPE)
+        rightOperand.setConvertedType(TypeTable.INT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(andExpressionNode.getRealType());
+      rightOperand.setConvertedType(andExpressionNode.getRealType());
+    }
+
+    return andExpressionNode.getRealType();
   }
 
   @Override
@@ -218,17 +347,23 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(FloatConstNode floatConstNode) {
-    return null;
+    floatConstNode.setRealType(TypeTable.FLOAT_TYPE);
+
+    return TypeTable.FLOAT_TYPE;
   }
 
   @Override
   public Integer visit(IntegerConstNode integerConstNode) {
-    return null;
+    integerConstNode.setRealType(TypeTable.INT_TYPE);
+
+    return TypeTable.INT_TYPE;
   }
 
   @Override
   public Integer visit(CharacterNode characterNode) {
-    return null;
+    characterNode.setRealType(TypeTable.CHAR_TYPE);
+
+    return TypeTable.CHAR_TYPE;
   }
 
   @Override

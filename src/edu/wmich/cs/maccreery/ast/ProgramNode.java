@@ -18,6 +18,7 @@ public class ProgramNode extends SubProgramDeclNode implements Visitable
     this.setBody(body);
   }
 
+  @SuppressWarnings("unchecked")
   public void setSubProgDecls(Vector subProgDecls) { this.subProgDecls = subProgDecls; children.add(subProgDecls); }
   public Vector getSubProgDecls() { return subProgDecls; }
 

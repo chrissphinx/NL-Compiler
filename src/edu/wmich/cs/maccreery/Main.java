@@ -38,6 +38,9 @@ public class Main
 
     ast.getRoot().accept(typeVisitor);
 
+    if (AbstractSyntaxTree.getError())
+      System.exit(1);
+
     System.exit(0);
   }
 }

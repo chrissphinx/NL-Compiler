@@ -34,6 +34,7 @@ public abstract class ASTNode implements Visitable
       else
         vec = (Vector) node;
       boolean contains = false;
+      if (vec == null) return contains;
       for (int i = 0; i < vec.size() && !contains; i++)
         contains = contains || containsReturnStatement(vec.elementAt(i));
 
