@@ -3,13 +3,15 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class WhileStatementNode extends StatementNode implements Visitable
 {
   private ExpressionNode whileExpr;
   private StatementNode controlledStmt;
 
   public WhileStatementNode(ExpressionNode whileExpr, StatementNode controlledStmt) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setWhileExpr(whileExpr);
     this.setControlledStmt(controlledStmt);
   }

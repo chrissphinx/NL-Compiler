@@ -3,12 +3,14 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class ParenthesisNode extends ExpressionNode implements Visitable
 {
   private ExpressionNode exprNode;
 
   public ParenthesisNode(ExpressionNode exprNode) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setExprNode(exprNode);
   }
 

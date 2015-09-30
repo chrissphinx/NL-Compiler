@@ -3,6 +3,8 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class IfStatementNode extends StatementNode implements Visitable
 {
   private ExpressionNode testExpr;
@@ -10,7 +12,7 @@ public class IfStatementNode extends StatementNode implements Visitable
   private StatementNode elseStmt;
 
   public IfStatementNode(ExpressionNode testExpr, StatementNode thenStmt, StatementNode elseStmt) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setTestExpr(testExpr);
     this.setThenStmt(thenStmt);
     this.setElseStmt(elseStmt);

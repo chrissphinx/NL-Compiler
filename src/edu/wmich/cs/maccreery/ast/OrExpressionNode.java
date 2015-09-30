@@ -3,10 +3,12 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class OrExpressionNode extends BinaryExpressionNode implements Visitable
 {
   public OrExpressionNode(ExpressionNode rightOperand) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setRightOperand(rightOperand);
   }
 

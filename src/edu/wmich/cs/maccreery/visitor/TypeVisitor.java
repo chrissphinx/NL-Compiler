@@ -2,6 +2,8 @@ package edu.wmich.cs.maccreery.visitor;
 
 import edu.wmich.cs.maccreery.ast.*;
 
+import java.util.Vector;
+
 public class TypeVisitor implements Visitor<Integer>
 {
   private SymbolTable symTable;
@@ -25,12 +27,12 @@ public class TypeVisitor implements Visitor<Integer>
   public Integer visit(ProgramNode programNode) {
     symTable.beginScope();
 
-    ASTVectorNode<ASTNode> variableDecls = programNode.getVariableDecls();
+    Vector variableDecls = programNode.getVariableDecls();
 
     for (int i = 0; i < variableDecls.size(); i++)
-      variableDecls.elementAt(i).accept(this);
+      ((ASTNode) variableDecls.elementAt(i)).accept(this);
 
-    ASTVectorNode<ASTNode> subProgDecls = programNode.getSubProgDecls();
+    Vector subProgDecls = programNode.getSubProgDecls();
 
     for (int i = 0; i < subProgDecls.size(); i++) {
       SubProgramDeclNode subProg = (SubProgramDeclNode)subProgDecls.elementAt(i);
@@ -38,7 +40,7 @@ public class TypeVisitor implements Visitor<Integer>
     }
 
     for (int i = 0; i < subProgDecls.size(); i++) {
-      subProgDecls.elementAt(i).accept(this);
+      ((ASTNode) subProgDecls.elementAt(i)).accept(this);
     }
 
     programNode.getBody().accept(this);
@@ -236,10 +238,10 @@ public class TypeVisitor implements Visitor<Integer>
 
     int typeVal = TypeTable.getTypeVal(idType.toString());
 
-    ASTVectorNode<ASTNode> idList = variableDeclarationNode.getVariableList();
+    Vector idList = variableDeclarationNode.getVariableList();
 
     for (int i = 0; i < idList.size(); i++) {
-      String id = idList.elementAt(i).toString();
+      String id = (String) idList.elementAt(i);
 
       SymbolTableEntry entry;
       if ((entry = symTable.add(id, idType)) == null) {

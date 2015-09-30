@@ -2,20 +2,22 @@ package edu.wmich.cs.maccreery.ast;
 
 import edu.wmich.cs.maccreery.visitor.*;
 
+import java.util.Vector;
+
 public class FunctionDeclNode extends SubProgramDeclNode implements Visitable
 {
-  private ASTVectorNode<ASTNode> paramList;
+  private Vector paramList;
   private StandardTypeNode returnType;
 
-  public FunctionDeclNode(String image, ASTVectorNode<ASTNode> paramList, StandardTypeNode returnType) {
-    children = new ASTVectorNode<ASTNode>();
+  public FunctionDeclNode(String image, Vector paramList, StandardTypeNode returnType) {
+    children = new Vector();
     this.setImage(image);
     this.setParamList(paramList);
     this.setReturnType(returnType);
   }
 
-  public void setParamList(ASTVectorNode<ASTNode> paramList) { this.paramList = paramList; children.add(paramList); }
-  public ASTVectorNode<ASTNode> getParamList() { return paramList; }
+  public void setParamList(Vector paramList) { this.paramList = paramList; children.add(paramList); }
+  public Vector getParamList() { return paramList; }
 
   public void setReturnType(StandardTypeNode returnType) { this.returnType = returnType; children.add(returnType); }
   public StandardTypeNode getReturnType() { return returnType; }

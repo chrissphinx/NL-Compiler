@@ -3,13 +3,15 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class ArrayTypeNode extends TypeNode implements Visitable
 {
   private StandardTypeNode basicType;
   private DimensionNode dimension;
 
   public ArrayTypeNode(DimensionNode dimension, StandardTypeNode basicType) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setBasicType(basicType);
     this.setDimension(dimension);
   }

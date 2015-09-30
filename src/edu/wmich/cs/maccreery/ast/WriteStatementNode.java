@@ -3,12 +3,14 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class WriteStatementNode extends StatementNode implements Visitable
 {
   private ASTNode writeExpr;
 
   public WriteStatementNode(ASTNode writeExpr) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setWriteExpr(writeExpr);
   }
 

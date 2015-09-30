@@ -3,12 +3,14 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class NotExpressionNode extends ExpressionNode implements Visitable
 {
   private ExpressionNode operand;
 
   public NotExpressionNode(ExpressionNode operand) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setOperand(operand);
   }
 

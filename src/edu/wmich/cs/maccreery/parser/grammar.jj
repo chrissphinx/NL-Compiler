@@ -8,6 +8,7 @@ options {
 PARSER_BEGIN(NolifeParser)
 package edu.wmich.cs.maccreery.parser;
 
+import java.util.Vector;
 import edu.wmich.cs.maccreery.ast.*;
 import edu.wmich.cs.maccreery.visitor.TypeTable;
 
@@ -85,8 +86,8 @@ TOKEN : /* other lexical tokens */
 
 ProgramNode program():
 {
-	ASTVectorNode variableDecls = new ASTVectorNode();
-	ASTVectorNode subProgDecls = new ASTVectorNode();
+	Vector variableDecls = new Vector();
+	Vector subProgDecls = new Vector();
 	CompoundStatementNode body;
 	Token prog,name;
 }
@@ -115,9 +116,9 @@ ProgramNode program():
   	}
 }
 
-ASTVectorNode decls():
+Vector decls():
 {
- 	ASTVectorNode declList;
+ 	Vector declList;
 }
 {
 	<O_VAR> declList = decl_list()
@@ -126,11 +127,11 @@ ASTVectorNode decls():
 	}
 }
 
-ASTVectorNode decl_list() :
+Vector decl_list() :
 {
-	ASTVectorNode declList = new ASTVectorNode();
+	Vector declList = new Vector();
 	VariableDeclarationNode variableDecl;
-	ASTVectorNode idList;
+	Vector idList;
 	TypeNode idType;
 	Token semi;
 }
@@ -150,9 +151,9 @@ ASTVectorNode decl_list() :
   }
 }
 
-ASTVectorNode identifier_list() :
+Vector identifier_list() :
 {
-	ASTVectorNode idList = new ASTVectorNode();
+	Vector idList = new Vector();
 	String name;
 	Token id;
 }
@@ -265,9 +266,9 @@ DimensionNode dim() :
   	}
 }
 
-ASTVectorNode subprogram_decls() :
+Vector subprogram_decls() :
 {
-	ASTVectorNode subProgDecls = new ASTVectorNode();
+	Vector subProgDecls = new Vector();
 	SubProgramDeclNode subDecl = null;
 }
 {
@@ -286,7 +287,7 @@ ASTVectorNode subprogram_decls() :
 SubProgramDeclNode subprogram_decl() :
 {
 	SubProgramDeclNode declNode;
-	ASTVectorNode variableDecls = new ASTVectorNode();
+	Vector variableDecls = new Vector();
 	CompoundStatementNode body;
 }
 {
@@ -307,7 +308,7 @@ SubProgramDeclNode subprogram_decl() :
 SubProgramDeclNode subprogram_head() :
 {
 	SubProgramDeclNode declNode;
-	ASTVectorNode paramList = new ASTVectorNode();
+	Vector paramList = new Vector();
 	StandardTypeNode declType;
 	Token func,name;
 }
@@ -339,9 +340,9 @@ SubProgramDeclNode subprogram_head() :
 	}
 }
 
-ASTVectorNode arguments() :
+Vector arguments() :
 {
-	ASTVectorNode paramList;
+	Vector paramList;
 }
 {
   <O_LPAREN> paramList = parameter_list() <O_RPAREN>
@@ -351,10 +352,10 @@ ASTVectorNode arguments() :
   }
 }
 
-ASTVectorNode parameter_list() :
+Vector parameter_list() :
 {
-	ASTVectorNode paramList = new ASTVectorNode();
-	ASTVectorNode idList;
+	Vector paramList = new Vector();
+	Vector idList;
 	TypeNode idType;
 	VariableDeclarationNode paramDecl;
 	Token token;
@@ -385,7 +386,7 @@ ASTVectorNode parameter_list() :
 CompoundStatementNode compound_stmt() :
 {
 	CompoundStatementNode compoundStmt;
-	ASTVectorNode stmtList;
+	Vector stmtList;
 	Token token;
 }
 {
@@ -402,9 +403,9 @@ CompoundStatementNode compound_stmt() :
  	 }
 }
 
-ASTVectorNode stmt_list() :
+Vector stmt_list() :
 {
-	ASTVectorNode stmtList = new ASTVectorNode();
+	Vector stmtList = new Vector();
 	StatementNode stmtNode;
 }
 {
@@ -516,7 +517,7 @@ WhileStatementNode while_stmt() :
 InvocationNode procedure_invocation() :
 {
 	InvocationNode invocation ;
-	ASTVectorNode exprList = new ASTVectorNode();
+	Vector exprList = new Vector();
 	Token token;
 }
 {
@@ -583,7 +584,7 @@ CaseStatementNode case_stmt() :
 {
 	CaseStatementNode caseStatement;
 	ExpressionNode caseExpr;
-  	ASTVectorNode caseList = new ASTVectorNode();
+  	Vector caseList = new Vector();
   	Token token;
 }
 {
@@ -601,9 +602,9 @@ CaseStatementNode case_stmt() :
 	  }
 }
 
-ASTVectorNode cases() :
+Vector cases() :
 {
-	ASTVectorNode caseList = new ASTVectorNode();
+	Vector caseList = new Vector();
 	CaseElementNode caseElement;
 }
 {
@@ -627,7 +628,7 @@ CaseElementNode case_element() :
 {
 	CaseElementNode caseElement;
 	StatementNode stmtNode;
-  	ASTVectorNode caseLabelList;
+  	Vector caseLabelList;
   	Token token;
 }
 {
@@ -645,9 +646,9 @@ CaseElementNode case_element() :
   	}
 }
 
-ASTVectorNode case_labels() :
+Vector case_labels() :
 {
-	ASTVectorNode caseLabelList = new ASTVectorNode();
+	Vector caseLabelList = new Vector();
 	ConstantNode constNode = null;
 }
 {
@@ -667,9 +668,9 @@ ASTVectorNode case_labels() :
   	}
 }
 
-ASTVectorNode expr_list() :
+Vector expr_list() :
 {
-	ASTVectorNode exprList = new ASTVectorNode();
+	Vector exprList = new Vector();
 	ExpressionNode exprNode = null;
 }
 {
@@ -1004,7 +1005,7 @@ ExpressionNode factor() :
 	ExpressionNode factorNode ;
 	InvocationNode invocation = null;
   	ExpressionNode fNode,exprNode = null;
-  	ASTVectorNode exprList = null;
+  	Vector exprList = null;
   	Token token;
 }
 {
@@ -1014,7 +1015,7 @@ ExpressionNode factor() :
 								| <O_LPAREN> (exprList = expr_list())? <O_RPAREN>
 								  {
 								  	if (exprList == null)
-								  	  exprList = new ASTVectorNode();
+								  	  exprList = new Vector();
 								  }
 							   )?
 			{

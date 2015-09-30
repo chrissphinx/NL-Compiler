@@ -3,13 +3,15 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class AssignmentStatementNode extends StatementNode implements Visitable
 {
   private VariableReferenceNode left;
   private ExpressionNode right;
 
   public AssignmentStatementNode(VariableReferenceNode left, ExpressionNode right) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setLeft(left);
     this.setRight(right);
   }

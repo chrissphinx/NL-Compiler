@@ -3,19 +3,21 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class CaseElementNode extends ASTNode implements Visitable
 {
-  private ASTVectorNode<ASTNode> caseLabelList;
+  private Vector caseLabelList;
   private StatementNode stmtNode;
 
-  public CaseElementNode(ASTVectorNode<ASTNode> caseLabelList, StatementNode stmtNode) {
-    children = new ASTVectorNode<ASTNode>();
+  public CaseElementNode(Vector caseLabelList, StatementNode stmtNode) {
+    children = new Vector();
     this.setCaseLabelList(caseLabelList);
     this.setStmtNode(stmtNode);
   }
 
-  public void setCaseLabelList(ASTVectorNode<ASTNode> caseList) { this.caseLabelList = caseList; children.add(caseList); }
-  public ASTVectorNode<ASTNode> getCaseLabelList() { return caseLabelList; }
+  public void setCaseLabelList(Vector caseList) { this.caseLabelList = caseList; children.add(caseList); }
+  public Vector getCaseLabelList() { return caseLabelList; }
 
   public void setStmtNode(StatementNode stmtNode) { this.stmtNode = stmtNode; children.add(stmtNode); }
   public StatementNode getStmtNode() { return stmtNode; }

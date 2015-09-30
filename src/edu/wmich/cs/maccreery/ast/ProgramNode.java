@@ -4,20 +4,22 @@ import edu.wmich.cs.maccreery.visitor.SymbolTable;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class ProgramNode extends SubProgramDeclNode implements Visitable
 {
-  private ASTVectorNode<ASTNode> subProgDecls;
+  private Vector subProgDecls;
 
-  public ProgramNode(String image, ASTVectorNode<ASTNode> variableDecls, ASTVectorNode<ASTNode> subProgDecls, CompoundStatementNode body) {
-    children = new ASTVectorNode<ASTNode>();
+  public ProgramNode(String image, Vector variableDecls, Vector subProgDecls, CompoundStatementNode body) {
+    children = new Vector();
     this.setImage(image);
     this.setVariableDecls(variableDecls);
     this.setSubProgDecls(subProgDecls);
     this.setBody(body);
   }
 
-  public void setSubProgDecls(ASTVectorNode<ASTNode> subProgDecls) { this.subProgDecls = subProgDecls; children.add(subProgDecls); }
-  public ASTVectorNode<ASTNode> getSubProgDecls() { return subProgDecls; }
+  public void setSubProgDecls(Vector subProgDecls) { this.subProgDecls = subProgDecls; children.add(subProgDecls); }
+  public Vector getSubProgDecls() { return subProgDecls; }
 
   @Override
   public void addToSymTable(SymbolTable symTable) {}

@@ -3,12 +3,14 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class ArrayReferenceNode extends VariableReferenceNode implements Visitable
 {
   private ExpressionNode subscript;
 
   public ArrayReferenceNode(String image, ExpressionNode subscript) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setImage(image);
     this.setSubscript(subscript);
   }

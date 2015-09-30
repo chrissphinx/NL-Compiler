@@ -3,13 +3,15 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class InvocationNode extends ExpressionNode implements Visitable
 {
   private String image;
-  private ASTVectorNode<ASTNode> actualParameters;
+  private Vector actualParameters;
 
-  public InvocationNode(String image, ASTVectorNode<ASTNode> actualParameters) {
-    children = new ASTVectorNode<ASTNode>();
+  public InvocationNode(String image, Vector actualParameters) {
+    children = new Vector();
     this.setImage(image);
     this.setActualParameters(actualParameters);
   }
@@ -18,8 +20,8 @@ public class InvocationNode extends ExpressionNode implements Visitable
   public String getImage() { return image; }
 
   @SuppressWarnings("unchecked")
-  public void setActualParameters(ASTVectorNode<ASTNode> actualParameters) { this.actualParameters = actualParameters; children.add(actualParameters); }
-  public ASTVectorNode<ASTNode> getActualParameters() { return actualParameters; }
+  public void setActualParameters(Vector actualParameters) { this.actualParameters = actualParameters; children.add(actualParameters); }
+  public Vector getActualParameters() { return actualParameters; }
 
   @Override
   public <T> T accept(Visitor<T> v) { return v.visit(this); }

@@ -10,7 +10,7 @@ public abstract class ASTNode implements Visitable
   private int realType;
   private int convertedType;
   private ASTNode parent;
-  protected ASTVectorNode<ASTNode> children;
+  protected Vector children;
 
   public void setLineNumber(int lineNumber) { this.lineNumber = lineNumber; }
   public int getLineNumber() { return lineNumber; }
@@ -28,11 +28,11 @@ public abstract class ASTNode implements Visitable
     if (node instanceof ReturnStatementNode)
       return true;
     else {
-      ASTVectorNode<ASTNode> vec;
-      if (!(node instanceof ASTVectorNode))
-        vec = ( (ASTNode) node).children;
+      Vector vec;
+      if (node instanceof ASTNode)
+        vec = ((ASTNode) node).children;
       else
-        vec = (ASTVectorNode<ASTNode>) node;
+        vec = (Vector) node;
       boolean contains = false;
       for (int i = 0; i < vec.size() && !contains; i++)
         contains = contains || containsReturnStatement(vec.elementAt(i));

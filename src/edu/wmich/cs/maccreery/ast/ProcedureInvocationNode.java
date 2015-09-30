@@ -3,12 +3,14 @@ package edu.wmich.cs.maccreery.ast;
 import edu.wmich.cs.maccreery.visitor.Visitable;
 import edu.wmich.cs.maccreery.visitor.Visitor;
 
+import java.util.Vector;
+
 public class ProcedureInvocationNode extends StatementNode implements Visitable
 {
   private InvocationNode invocation;
 
   public ProcedureInvocationNode(InvocationNode invocation) {
-    children = new ASTVectorNode<ASTNode>();
+    children = new Vector();
     this.setInvocation(invocation);
   }
 
