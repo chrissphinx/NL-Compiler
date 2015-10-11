@@ -18,6 +18,15 @@ public class ReturnStatementNode extends StatementNode implements Visitable
   public void setReturnExpr(ExpressionNode returnExpr) { this.returnExpr = returnExpr; children.add(returnExpr); }
   public ExpressionNode getReturnExpr() { return returnExpr; }
 
+  public SubProgramDeclNode getContainingSubProgram() {
+    ASTNode node;
+    for (node = this;
+         node != null && !(node instanceof SubProgramDeclNode);
+         node = node.getParent());
+
+    return (SubProgramDeclNode) node;
+  }
+
   @Override
   public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

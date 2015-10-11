@@ -8,6 +8,7 @@ import java.util.Vector;
 public class CompileVisitor implements Visitor<Integer>
 {
   private SymbolTable symTable;
+  private int labelCounter = 0;
 
   public CompileVisitor() {
     symTable = new SymbolTable();
@@ -77,8 +78,32 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(WhileStatementNode whileStatementNode) {
-    return null;
+  public Integer visit(WhileStatementNode node) {
+    System.out.println(".L" + labelCounter + ": nop");
+    labelCounter++;
+
+    int a = node.getWhileExpr().accept(this);
+
+    String s = "loadI 0";
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    s = "comp %vr" + a + " %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    s = "testeq %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    System.out.println("cbr %vr" + r + " => .L" + labelCounter);
+
+    node.getControlledStmt().accept(this);
+
+    System.out.println(".L" + labelCounter + ": nop");
+    labelCounter++;
+
+    return 0;
   }
 
   @Override
@@ -100,12 +125,8 @@ public class CompileVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(ReadStatementNode readStatementNode) {
-    String s = "add %vr0 %vr";
-    s += readStatementNode.getVariable().accept(this);
-    int r = ExpressionTable.getInstance().check(s);
-    s += " => %vr" + r;
+    int r = readStatementNode.getVariable().accept(this);
 
-    System.out.println(s);
     System.out.println("iread %vr" + r);
 
     return r;
@@ -113,16 +134,7 @@ public class CompileVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(WriteStatementNode node) {
-    ASTNode writeExpr = node.getWriteExpr();
-    int r = writeExpr.accept(this);
-
-    if (writeExpr instanceof ScalarReferenceNode) {
-      String s = "loadAO %vr0 %vr";
-      s += r;
-      r = ExpressionTable.getInstance().check(s);
-      s += " => %vr" + r;
-      System.out.println(s);
-    }
+    int r = node.getWriteExpr().accept(this);
 
     System.out.println("iwrite %vr" + r);
     return r;
@@ -135,9 +147,7 @@ public class CompileVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(AssignmentStatementNode node) {
-    String s = "add %vr0 %vr" + node.getLeft().accept(this);
-    int r = ExpressionTable.getInstance().check(s);
-    System.out.println(" => %vr" + r);
+    int r = node.getLeft().accept(this);
 
     System.out.println("store %vr" + node.getRight().accept(this) + " => %vr" + r);
 
@@ -149,6 +159,18 @@ public class CompileVisitor implements Visitor<Integer>
     String s = "loadI " + symTable.getEntry(node.getImage()).getOffset();
     int r = ExpressionTable.getInstance().check(s);
     System.out.println(s + " => %vr" + r);
+
+    if (node.getParent() instanceof AssignmentStatementNode
+     || node.getParent() instanceof ReadStatementNode
+     || node.getParent() instanceof InvocationNode) {
+      s = "add %vr0 %vr" + r;
+      r = ExpressionTable.getInstance().check(s);
+      System.out.println(s + " => %vr" + r);
+    } else {
+      s = "loadAO %vr0 %vr" + r;
+      r = ExpressionTable.getInstance().check(s);
+      System.out.println(s + " => %vr" + r);
+    }
 
     return r;
   }
@@ -164,8 +186,8 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(ParenthesisNode parenthesisNode) {
-    return null;
+  public Integer visit(ParenthesisNode node) {
+    return node.getExprNode().accept(this);
   }
 
   @Override
@@ -181,24 +203,10 @@ public class CompileVisitor implements Visitor<Integer>
     ExpressionNode rightOperand = node.getRightOperand();
 
     int rl = 0;
-    if (leftOperand instanceof ScalarReferenceNode) {
-      s = new StringBuilder();
-      s.append("loadAO %vr0 %vr").append(leftOperand.accept(this));
-      rl = ExpressionTable.getInstance().check(s.toString());
-      System.out.println(s.append(" => %vr").append(rl));
-    } else {
-      rl = leftOperand.accept(this);
-    }
+    rl = leftOperand.accept(this);
 
     int rr = 0;
-    if (rightOperand instanceof ScalarReferenceNode) {
-      s = new StringBuilder();
-      s.append("loadAO %vr0 %vr").append(rightOperand.accept(this));
-      rr = ExpressionTable.getInstance().check(s.toString());
-      System.out.println(s.append(" => %vr").append(rr));
-    } else {
-      rr = rightOperand.accept(this);
-    }
+    rr = rightOperand.accept(this);
 
     s = new StringBuilder();
     s.append("add %vr")
@@ -222,8 +230,21 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(NotEqualExpressionNode notEqualExpressionNode) {
-    return null;
+  public Integer visit(NotEqualExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
+
+    String s = "comp %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    s = "testne %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    return r;
   }
 
   @Override
@@ -254,24 +275,10 @@ public class CompileVisitor implements Visitor<Integer>
     ExpressionNode rightOperand = node.getRightOperand();
 
     int rl = 0;
-    if (leftOperand instanceof ScalarReferenceNode) {
-      s = new StringBuilder();
-      s.append("loadAO %vr0 %vr").append(leftOperand.accept(this));
-      rl = ExpressionTable.getInstance().check(s.toString());
-      System.out.println(s.append(" => %vr").append(rl));
-    } else {
-      rl = leftOperand.accept(this);
-    }
+    rl = leftOperand.accept(this);
 
     int rr = 0;
-    if (rightOperand instanceof ScalarReferenceNode) {
-      s = new StringBuilder();
-      s.append("loadAO %vr0 %vr").append(rightOperand.accept(this));
-      rr = ExpressionTable.getInstance().check(s.toString());
-      System.out.println(s.append(" => %vr").append(rr));
-    } else {
-      rr = rightOperand.accept(this);
-    }
+    rr = rightOperand.accept(this);
 
     s = new StringBuilder();
     s.append("and %vr")
@@ -290,8 +297,16 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(OrExpressionNode orExpressionNode) {
-    return null;
+  public Integer visit(OrExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
+
+    String s = "or %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    return r;
   }
 
   @Override

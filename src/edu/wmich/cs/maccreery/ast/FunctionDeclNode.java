@@ -40,4 +40,21 @@ public class FunctionDeclNode extends SubProgramDeclNode implements Visitable
       this.setRealType(typeVal);
     }
   }
+
+  public String buildParameterTypeString() {
+    String typeString = "";
+
+    for (int i = 0; i < this.paramList.size(); i++) {
+      VariableDeclarationNode decl = (VariableDeclarationNode) this.paramList.elementAt(i);
+      for (int j = 0; j < decl.getVariableList().size(); j++)
+        typeString += ("&" + decl.getType().toString());
+    }
+
+    if (typeString.length() > 1)
+      typeString = typeString.substring(1);
+
+    return typeString;
+  }
+
+  public String toString() { return "func::" + buildParameterTypeString() + "->" + returnType.toString(); }
 }

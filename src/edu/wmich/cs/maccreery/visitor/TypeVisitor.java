@@ -15,12 +15,12 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(ProcedureDeclNode procedureDeclNode) {
-    return null;
+    return 0;
   }
 
   @Override
   public Integer visit(FunctionDeclNode functionDeclNode) {
-    return null;
+    return 0;
   }
 
   @Override
@@ -58,42 +58,90 @@ public class TypeVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(CharacterDimensionNode characterDimensionNode) {
-    return null;
+    return 0;
   }
 
   @Override
   public Integer visit(IntegerDimensionNode integerDimensionNode) {
-    return null;
+    return 0;
   }
 
   @Override
   public Integer visit(StandardTypeNode standardTypeNode) {
-    return null;
+    return 0;
   }
 
   @Override
   public Integer visit(ArrayTypeNode arrayTypeNode) {
-    return null;
+    return 0;
   }
 
   @Override
-  public Integer visit(StringNode stringNode) {
-    return null;
+  public Integer visit(StringNode node) {
+    node.setRealType(TypeTable.STRING_TYPE);
+
+    return TypeTable.STRING_TYPE;
   }
 
   @Override
-  public Integer visit(CaseStatementNode caseStatementNode) {
-    return null;
+  public Integer visit(CaseStatementNode node) {
+    ExpressionNode caseExpr = node.getCaseExpr();
+    Vector caseList = node.getCaseList();
+
+    int testType = caseExpr.accept(this);
+
+    caseExpr.setConvertedType(testType);
+
+    for (int i = 0; i < caseList.size(); i++) {
+      CaseElementNode caseElement = (CaseElementNode) caseList.elementAt(i);
+      caseElement.accept(this);
+
+      if (testType != caseElement.getRealType()) {
+        System.err.println("Line " + caseElement.getLineNumber() + ": Type mismatch in case label");
+        AbstractSyntaxTree.setError();
+      }
+    }
+
+    node.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
-  public Integer visit(ProcedureInvocationNode procedureInvocationNode) {
-    return null;
+  public Integer visit(ProcedureInvocationNode node) {
+    InvocationNode invocation = node.getInvocation();
+
+    node.setRealType(invocation.accept(this));
+    invocation.setConvertedType(TypeTable.NO_TYPE);
+
+    int realType = node.getRealType();
+    if (realType != TypeTable.NO_TYPE && realType != TypeTable.ANY_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Function invoked as a procedure");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.NO_TYPE);
+    }
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
-  public Integer visit(WhileStatementNode whileStatementNode) {
-    return null;
+  public Integer visit(WhileStatementNode node) {
+    ExpressionNode whileExpr = node.getWhileExpr();
+
+    int exprType = whileExpr.accept(this);
+
+    if (exprType == TypeTable.CHAR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": while expression of type char not allowed");
+      AbstractSyntaxTree.setError();
+    }
+
+    whileExpr.setConvertedType(TypeTable.INT_TYPE);
+
+    node.getControlledStmt().accept(this);
+
+    node.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
@@ -110,8 +158,22 @@ public class TypeVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(ReturnStatementNode returnStatementNode) {
-    return null;
+  public Integer visit(ReturnStatementNode node) {
+    ExpressionNode returnExpr = node.getReturnExpr();
+
+    int returnType = returnExpr.accept(this);
+    SubProgramDeclNode subDecl = node.getContainingSubProgram();
+
+    if (returnType != TypeTable.getFunctionReturnType(subDecl.getRealType())) {
+      System.err.println("Line " + node.getLineNumber() + ": return type does not match declaration");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    } else {
+      returnExpr.setConvertedType(returnType);
+      node.setRealType(returnType);
+    }
+
+    return 0;
   }
 
   @Override
@@ -135,8 +197,27 @@ public class TypeVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(IfStatementNode ifStatementNode) {
-    return null;
+  public Integer visit(IfStatementNode node) {
+    ExpressionNode testExpr = node.getTestExpr();
+
+    int exprType = testExpr.accept(this);
+
+    if (exprType == TypeTable.CHAR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": if test expression of type char not allowed");
+      AbstractSyntaxTree.setError();
+    }
+
+    testExpr.setConvertedType(TypeTable.INT_TYPE);
+
+    node.getThenStmt().accept(this);
+
+    StatementNode elseStmt = node.getElseStmt();
+    if (elseStmt != null)
+      elseStmt.accept(this);
+
+    node.setRealType(TypeTable.NO_TYPE);
+
+    return TypeTable.NO_TYPE;
   }
 
   @Override
@@ -182,61 +263,150 @@ public class TypeVisitor implements Visitor<Integer>
       scalarReferenceNode.setNestingLevel(entry.getNestingLevel());
     }
 
-    // SubProgramDeclNode subProg = getContainingSubProgram();
-
-    //
-    // if this is a global variable accessed outside the main procedure
-    // then it must be allocated to the stack
-    //
-
     return scalarReferenceNode.getRealType();
   }
 
   @Override
-  public Integer visit(ArrayReferenceNode arrayReferenceNode) {
-    return null;
+  public Integer visit(ArrayReferenceNode node) {
+    ExpressionNode subscript = node.getSubscript();
+
+    int subscriptType = subscript.accept(this);
+
+    subscript.setConvertedType(subscriptType);
+
+    SymbolTableEntry entry = symTable.getEntry(node.getImage());
+
+    if (entry == null) {
+      System.err.println("Line " + node.getLineNumber() + ": Undeclared variable " + node.getImage());
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    } else {
+      node.setRealType(TypeTable.getArrayBasicType(entry.getDataType()));
+
+      if (node.getRealType() == TypeTable.ERROR_TYPE) {
+        System.err.println("Line " + node.getLineNumber() + ": Subscript applied to non-array");
+        AbstractSyntaxTree.setError();
+        node.setRealType(TypeTable.ANY_TYPE);
+      } else {
+        int arrayType = entry.getDataType();
+        if (subscriptType != TypeTable.getArraySubscriptType(arrayType)) {
+          System.err.println("Line " + node.getLineNumber() + ": subscripting type error on array " + node.getImage());
+          AbstractSyntaxTree.setError();
+        } else {
+          int lowerBound = TypeTable.getArrayLowerBoundValue(arrayType);
+          if (subscript instanceof IntegerConstNode) {
+            int upb = TypeTable.getArrayIntUpperBound(arrayType);
+            int index = ((IntegerConstNode) subscript).getConstant();
+
+            if (index < lowerBound || index > upb) {
+              System.err.println("Line " + node.getLineNumber() + ": Constant index out of bounds on array " + node.getImage());
+              AbstractSyntaxTree.setError();
+            }
+          } else if (subscript instanceof CharacterNode) {
+            char c_lwb = TypeTable.getArrayCharLowerBound(arrayType);
+            char c_upb = TypeTable.getArrayCharUpperBound(arrayType);
+            char c_index = ((CharacterNode) subscript).getCharacter();
+
+            if (c_index < c_lwb || c_index > c_upb) {
+              System.err.println("Line " + node.getLineNumber() + ": Constant index out of bounds on array " + node.getImage());
+              AbstractSyntaxTree.setError();
+            }
+          }
+        }
+      }
+
+      node.setNestingLevel(entry.getNestingLevel());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(NotExpressionNode notExpressionNode) {
-    return null;
+  public Integer visit(NotExpressionNode node) {
+    ExpressionNode operand = node.getOperand();
+
+    node.setRealType(operand.accept(this));
+    operand.setConvertedType(TypeTable.INT_TYPE);
+
+    if (node.getRealType() != TypeTable.INT_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": NOT requires an integer operand");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(ParenthesisNode parenthesisNode) {
-    return null;
+  public Integer visit(ParenthesisNode node) {
+    ExpressionNode exprNode = node.getExprNode();
+
+    node.setRealType(exprNode.accept(this));
+    exprNode.setConvertedType(node.getRealType());
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(SubtractExpressionNode subtractExpressionNode) {
-    return null;
-  }
-
-  @Override
-  public Integer visit(AddExpressionNode addExpressionNode) {
-    ExpressionNode leftOperand = addExpressionNode.getLeftOperand();
-    ExpressionNode rightOperand = addExpressionNode.getRightOperand();
+  public Integer visit(SubtractExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
 
     int lhsType = leftOperand.accept(this);
     int rhsType = rightOperand.accept(this);
 
-    addExpressionNode.setRealType(TypeTable.getResultArithmeticType(lhsType, rhsType));
+    node.setRealType(TypeTable.getResultArithmeticType(lhsType, rhsType));
 
-    if (addExpressionNode.getRealType() == TypeTable.ERROR_TYPE) {
-      System.err.println("Line " + addExpressionNode.getLineNumber() +
-              ": Type mismatch in addition operation");
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in subtraction operation");
       AbstractSyntaxTree.setError();
-      addExpressionNode.setRealType(TypeTable.ANY_TYPE);
-    }
-    else if (lhsType != rhsType) {
-      if (addExpressionNode.getRealType() == lhsType)
+      node.setRealType(TypeTable.ANY_TYPE);
+    } else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
         leftOperand.setConvertedType(lhsType);
       else if (lhsType == TypeTable.INT_TYPE)
         leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
       else
         leftOperand.setConvertedType(lhsType);
 
-      if (addExpressionNode.getRealType() == rhsType)
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    } else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
+  }
+
+  @Override
+  public Integer visit(AddExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultArithmeticType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in addition operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
         rightOperand.setConvertedType(rhsType);
       else if (rhsType == TypeTable.INT_TYPE)
         rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
@@ -244,46 +414,258 @@ public class TypeVisitor implements Visitor<Integer>
         rightOperand.setConvertedType(rhsType);
     }
     else {
-      leftOperand.setConvertedType(addExpressionNode.getRealType());
-      rightOperand.setConvertedType(addExpressionNode.getRealType());
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
     }
 
-    return addExpressionNode.getRealType();
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(ModExpressionNode modExpressionNode) {
-    return null;
+  public Integer visit(ModExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    leftOperand.setConvertedType(TypeTable.INT_TYPE);
+    rightOperand.setConvertedType(TypeTable.INT_TYPE);
+
+    if (lhsType != TypeTable.INT_TYPE || rhsType != TypeTable.INT_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": MOD requires integer operands");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else
+      node.setRealType(TypeTable.INT_TYPE);
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(GreaterThanExpressionNode greaterThanExpressionNode) {
-    return null;
+  public Integer visit(GreaterThanExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultComparisonType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in greater-than operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(NotEqualExpressionNode notEqualExpressionNode) {
-    return null;
+  public Integer visit(NotEqualExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultComparisonType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in not-equal operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(LessEqualExpressionNode lessEqualExpressionNode) {
-    return null;
+  public Integer visit(LessEqualExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultComparisonType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in less-than-or-equal operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    } else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(LessThanExpressionNode lessThanExpressionNode) {
-    return null;
+  public Integer visit(LessThanExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultComparisonType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in less-than operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(EqualExpressionNode equalExpressionNode) {
-    return null;
+  public Integer visit(EqualExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultComparisonType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in equal comparison");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(GreaterEqualExpressionNode greaterEqualExpressionNode) {
-    return null;
+  public Integer visit(GreaterEqualExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultComparisonType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in greater-than-or-equal operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    } else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    } else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
@@ -326,23 +708,125 @@ public class TypeVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(MultiplyExpressionNode multiplyExpressionNode) {
-    return null;
+  public Integer visit(MultiplyExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultArithmeticType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in multiply operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.INT_TYPE)
+        leftOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.INT_TYPE)
+        rightOperand.setConvertedType(TypeTable.FLOAT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(OrExpressionNode orExpressionNode) {
-    return null;
+  public Integer visit(OrExpressionNode node) {
+    ExpressionNode leftOperand = node.getLeftOperand();
+    ExpressionNode rightOperand = node.getRightOperand();
+
+    int lhsType = leftOperand.accept(this);
+    int rhsType = rightOperand.accept(this);
+
+    node.setRealType(TypeTable.getResultBooleanType(lhsType, rhsType));
+
+    if (node.getRealType() == TypeTable.ERROR_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Type mismatch in OR operation");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else if (lhsType != rhsType) {
+      if (node.getRealType() == lhsType)
+        leftOperand.setConvertedType(lhsType);
+      else if (lhsType == TypeTable.FLOAT_TYPE)
+        leftOperand.setConvertedType(TypeTable.INT_TYPE);
+      else
+        leftOperand.setConvertedType(lhsType);
+
+      if (node.getRealType() == rhsType)
+        rightOperand.setConvertedType(rhsType);
+      else if (rhsType == TypeTable.FLOAT_TYPE)
+        rightOperand.setConvertedType(TypeTable.INT_TYPE);
+      else
+        rightOperand.setConvertedType(rhsType);
+    }
+    else {
+      leftOperand.setConvertedType(node.getRealType());
+      rightOperand.setConvertedType(node.getRealType());
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(FunctionInvocationNode functionInvocationNode) {
-    return null;
+  public Integer visit(FunctionInvocationNode node) {
+    InvocationNode invocation = node.getInvocation();
+
+    node.setRealType(invocation.accept(this));
+    invocation.setConvertedType(node.getRealType());
+
+    if (node.getRealType() == TypeTable.NO_TYPE) {
+      System.err.println("Line " + node.getLineNumber() + ": Procedure invoked as function");
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+
+    return node.getRealType();
   }
 
   @Override
-  public Integer visit(InvocationNode invocationNode) {
-    return null;
+  public Integer visit(InvocationNode node) {
+    Vector actualParameters = node.getActualParameters();
+
+    for (int i = 0; i < actualParameters.size(); i++) {
+      ExpressionNode expr = (ExpressionNode) actualParameters.elementAt(i);
+      int paramType = expr.accept(this);
+      expr.setConvertedType(paramType);
+    }
+
+    SymbolTableEntry entry = symTable.getEntry(node.getImage());
+
+    if (entry == null) {
+      System.err.println("Line " + node.getLineNumber() + ": Undeclared variable " + node.getImage());
+      AbstractSyntaxTree.setError();
+      node.setRealType(TypeTable.ANY_TYPE);
+    }
+    else {
+      String typeString = TypeTable.getTypeString(entry.getDataType());
+      int returnType = TypeTable.getFunctionReturnType(entry.getDataType());
+      if (typeString.compareTo(node.toString() + TypeTable.getTypeString(returnType)) != 0) {
+        System.err.println("Line " + node.getLineNumber() + ": Mismatched parameter types for function " + node.getImage());
+        AbstractSyntaxTree.setError();
+      }
+      node.setRealType(returnType);
+    }
+
+    return node.getRealType();
   }
 
   @Override
@@ -394,7 +878,28 @@ public class TypeVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(CaseElementNode caseElementNode) {
-    return null;
+  public Integer visit(CaseElementNode node) {
+    Vector caseLabelList = node.getCaseLabelList();
+
+    ConstantNode constNode = (ConstantNode) caseLabelList.elementAt(0);
+
+    node.setRealType(constNode.accept(this));
+    constNode.setConvertedType(node.getRealType());
+
+    for (int i = 1; i < caseLabelList.size(); i++) {
+      constNode = (ConstantNode) caseLabelList.elementAt(i);
+
+      int labelType = constNode.accept(this);
+      constNode.setConvertedType(node.getRealType());
+
+      if (labelType != node.getRealType()) {
+        System.err.println("Line " + node.getLineNumber() + ": Multiple types in set of case labels");
+        AbstractSyntaxTree.setError();
+      }
+    }
+
+    node.getStmtNode().accept(this);
+
+    return node.getRealType();
   }
 }
