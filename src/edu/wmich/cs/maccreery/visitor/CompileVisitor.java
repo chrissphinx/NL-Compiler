@@ -48,7 +48,7 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(IntegerDimensionNode TegerDimensionNode) {
+  public Integer visit(IntegerDimensionNode integerDimensionNode) {
     return null;
   }
 
@@ -79,6 +79,7 @@ public class CompileVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(WhileStatementNode node) {
+    int top = labelCounter;
     System.out.println(".L" + labelCounter + ": nop");
     labelCounter++;
 
@@ -100,6 +101,8 @@ public class CompileVisitor implements Visitor<Integer>
 
     node.getControlledStmt().accept(this);
 
+    System.out.println("jumpI .L" + top);
+
     System.out.println(".L" + labelCounter + ": nop");
     labelCounter++;
 
@@ -109,13 +112,11 @@ public class CompileVisitor implements Visitor<Integer>
   @Override
   @SuppressWarnings("unchecked")
   public Integer visit(CompoundStatementNode node) {
-    int r = 4;
-
     for (ASTNode n : (Vector<ASTNode>) node.getStmtList()) {
-      r = n.accept(this);
+      n.accept(this);
     }
 
-    return r;
+    return 0;
   }
 
   @Override
@@ -137,12 +138,27 @@ public class CompileVisitor implements Visitor<Integer>
     int r = node.getWriteExpr().accept(this);
 
     System.out.println("iwrite %vr" + r);
+
     return r;
   }
 
   @Override
-  public Integer visit(IfStatementNode ifStatementNode) {
-    return null;
+  public Integer visit(IfStatementNode node) {
+    int a = node.getTestExpr().accept(this);
+
+    System.out.println("cbrne %vr" + a + " => .L" + labelCounter);
+
+    node.getThenStmt().accept(this);
+
+    System.out.println(".L" + labelCounter + ": nop");
+    labelCounter++;
+
+    StatementNode elseStmt = node.getElseStmt();
+    if (elseStmt != null) {
+      elseStmt.accept(this);
+    }
+
+    return 0;
   }
 
   @Override
@@ -181,8 +197,12 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(NotExpressionNode notExpressionNode) {
-    return null;
+  public Integer visit(NotExpressionNode node) {
+    String s = "not %vr" + node.getOperand().accept(this);
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    return r;
   }
 
   @Override
@@ -191,42 +211,48 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(SubtractExpressionNode subtractExpressionNode) {
-    return null;
-  }
+  public Integer visit(SubtractExpressionNode node) {
+    String s = "sub %vr" + node.getLeftOperand().accept(this) + " %vr" + node.getRightOperand().accept(this);
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
 
-  @Override
-  public Integer visit(AddExpressionNode node) {
-    StringBuilder s;
-
-    ExpressionNode leftOperand = node.getLeftOperand();
-    ExpressionNode rightOperand = node.getRightOperand();
-
-    int rl = 0;
-    rl = leftOperand.accept(this);
-
-    int rr = 0;
-    rr = rightOperand.accept(this);
-
-    s = new StringBuilder();
-    s.append("add %vr")
-            .append(rl)
-            .append(" %vr")
-            .append(rr);
-
-    int r = ExpressionTable.getInstance().check(s.toString());
-    System.out.println(s.append(" => %vr").append(r));
     return r;
   }
 
   @Override
-  public Integer visit(ModExpressionNode modExpressionNode) {
-    return null;
+  public Integer visit(AddExpressionNode node) {
+    String s = "add %vr" + node.getLeftOperand().accept(this) + " %vr" + node.getRightOperand().accept(this);
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    return r;
   }
 
   @Override
-  public Integer visit(GreaterThanExpressionNode greaterThanExpressionNode) {
-    return null;
+  public Integer visit(ModExpressionNode node) {
+    String s = "mod %vr" + node.getLeftOperand().accept(this) + " %vr" + node.getRightOperand().accept(this);
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    return r;
+  }
+
+  @Override
+  public Integer visit(GreaterThanExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
+
+    String s = "comp %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    s = "testgt %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    return r;
   }
 
   @Override
@@ -248,63 +274,100 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(LessEqualExpressionNode lessEqualExpressionNode) {
-    return null;
-  }
+  public Integer visit(LessEqualExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
 
-  @Override
-  public Integer visit(LessThanExpressionNode lessThanExpressionNode) {
-    return null;
-  }
+    String s = "comp %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
 
-  @Override
-  public Integer visit(EqualExpressionNode equalExpressionNode) {
-    return null;
-  }
+    s = "testle %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
 
-  @Override
-  public Integer visit(GreaterEqualExpressionNode greaterEqualExpressionNode) {
-    return null;
-  }
-
-  @Override
-  public Integer visit(AndExpressionNode node) {
-    StringBuilder s;
-
-    ExpressionNode leftOperand = node.getLeftOperand();
-    ExpressionNode rightOperand = node.getRightOperand();
-
-    int rl = 0;
-    rl = leftOperand.accept(this);
-
-    int rr = 0;
-    rr = rightOperand.accept(this);
-
-    s = new StringBuilder();
-    s.append("and %vr")
-            .append(rl)
-            .append(" %vr")
-            .append(rr);
-
-    int r = ExpressionTable.getInstance().check(s.toString());
-    System.out.println(s.append(" => %vr").append(r));
     return r;
   }
 
   @Override
-  public Integer visit(MultiplyExpressionNode multiplyExpressionNode) {
-    return null;
+  public Integer visit(LessThanExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
+
+    String s = "comp %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    s = "testlt %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    return r;
+  }
+
+  @Override
+  public Integer visit(EqualExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
+
+    String s = "comp %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    s = "testeq %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    return r;
+  }
+
+  @Override
+  public Integer visit(GreaterEqualExpressionNode node) {
+    int left = node.getLeftOperand().accept(this);
+    int right = node.getRightOperand().accept(this);
+
+    String s = "comp %vr" + left + " %vr" + right;
+    int r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    s = "testge %vr" + r;
+    r = ExpressionTable.getInstance().check(s);
+    s += " => %vr" + r;
+    System.out.println(s);
+
+    return r;
+  }
+
+  @Override
+  public Integer visit(AndExpressionNode node) {
+    String s = "and %vr" + node.getLeftOperand().accept(this) + " %vr" + node.getRightOperand().accept(this);
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    return r;
+  }
+
+  @Override
+  public Integer visit(MultiplyExpressionNode node) {
+    String s = "mult %vr" + node.getLeftOperand().accept(this) + " %vr" + node.getRightOperand().accept(this);
+    int r = ExpressionTable.getInstance().check(s);
+    System.out.println(s + " => %vr" + r);
+
+    return r;
   }
 
   @Override
   public Integer visit(OrExpressionNode node) {
-    int left = node.getLeftOperand().accept(this);
-    int right = node.getRightOperand().accept(this);
-
-    String s = "or %vr" + left + " %vr" + right;
+    String s = "or %vr" + node.getLeftOperand() + " %vr" + node.getRightOperand();
     int r = ExpressionTable.getInstance().check(s);
-    s += " => %vr" + r;
-    System.out.println(s);
+    System.out.println(s + " => %vr" + r);
 
     return r;
   }
