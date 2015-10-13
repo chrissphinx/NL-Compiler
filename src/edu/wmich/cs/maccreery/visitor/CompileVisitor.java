@@ -79,9 +79,9 @@ public class CompileVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(WhileStatementNode node) {
-    int top = labelCounter;
-    System.out.println(".L" + labelCounter + ": nop");
-    labelCounter++;
+    int l = labelCounter;
+    labelCounter += 2;
+    System.out.println(".L" + l + ": nop");
 
     int a = node.getWhileExpr().accept(this);
 
@@ -97,14 +97,13 @@ public class CompileVisitor implements Visitor<Integer>
     r = ExpressionTable.getInstance().check(s);
     System.out.println(s + " => %vr" + r);
 
-    System.out.println("cbr %vr" + r + " => .L" + labelCounter);
+    System.out.println("cbr %vr" + r + " => .L" + (l + 1));
 
     node.getControlledStmt().accept(this);
 
-    System.out.println("jumpI .L" + top);
+    System.out.println("jumpI .L" + l);
 
-    System.out.println(".L" + labelCounter + ": nop");
-    labelCounter++;
+    System.out.println(".L" + (l + 1) + ": nop");
 
     return 0;
   }
@@ -144,19 +143,24 @@ public class CompileVisitor implements Visitor<Integer>
 
   @Override
   public Integer visit(IfStatementNode node) {
+    int l = labelCounter;
+    labelCounter += 2;
     int a = node.getTestExpr().accept(this);
 
-    System.out.println("cbrne %vr" + a + " => .L" + labelCounter);
+    System.out.println("cbrne %vr" + a + " => .L" + l);
 
     node.getThenStmt().accept(this);
 
-    System.out.println(".L" + labelCounter + ": nop");
-    labelCounter++;
+    System.out.println("jumpI .L" + (l + 1));
+
+    System.out.println(".L" + l + ": nop");
 
     StatementNode elseStmt = node.getElseStmt();
     if (elseStmt != null) {
       elseStmt.accept(this);
     }
+
+    System.out.println(".L" + (l + 1) + ": nop");
 
     return 0;
   }

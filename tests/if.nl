@@ -1,31 +1,29 @@
 {*********************************************************
-
-This testcase performs simple test on flow of control.
-
+  SIMPLE CONTROL FLOW TEST USING IF STATEMENTS
 *********************************************************}
 
-PROGRAM Flow;
- VAR a,b:INTEGER;
+PROGRAM Ifs;
+  VAR a, b: INTEGER;
 
 BEGIN
+  a := 0;
+  b := a -1;
 
-     
-        a := 0;
-	b := a -1;
-	IF a THEN
-		WRITE(1)
-	ELSE
-		WRITE(0);
+  IF a THEN
+    WRITE(1)
+  ELSE
+    WRITE(0);
 
-	WRITE('a = ');
-	WRITE(a);
-	WRITE('b = ');
-	WRITE(b);
-	IF b THEN
-		IF a THEN
-			WRITE(0)
-		ELSE
-			WRITE(1)
-	ELSE
-		WRITE(0)
+  { WRITE('a = '); }
+  WRITE(a);
+  { WRITE('b = '); }
+  WRITE(b);
+
+  IF b THEN
+    IF a THEN
+      WRITE(0)
+    ELSE
+      WRITE(1)
+  ELSE
+    WRITE(0)
 END

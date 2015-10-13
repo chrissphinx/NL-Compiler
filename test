@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-/Library/Internet\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home/bin/java -jar out/artifacts/NL_Compiler_jar/NL\ Compiler.jar tests/$1.nl > tests/$1.il && java -cp iloc.jar:antlr-3.5.2-complete.jar interpreter/IlocInterpreter tests/$1.il
+java -cp iloc.jar:antlr-3.5.2-complete.jar interpreter/IlocInterpreter tests/$1.il
