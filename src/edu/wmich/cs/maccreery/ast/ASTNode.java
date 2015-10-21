@@ -41,4 +41,14 @@ public abstract class ASTNode implements Visitable
       return contains;
     }
   }
+
+  public SubProgramDeclNode getContainingFunction() {
+    ASTNode node;
+
+    for (node = this;
+         node != null && !(node instanceof FunctionDeclNode) && !(node instanceof ProgramNode);
+         node = node.parent);
+
+    return (SubProgramDeclNode) node;
+  }
 }

@@ -14,25 +14,75 @@ public class TypeVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(ProcedureDeclNode procedureDeclNode) {
-    return 0;
-  }
-
-  @Override
-  public Integer visit(FunctionDeclNode functionDeclNode) {
-    return 0;
-  }
-
-  @Override
-  public Integer visit(ProgramNode programNode) {
+  public Integer visit(ProcedureDeclNode node) {
     symTable.beginScope();
 
-    Vector variableDecls = programNode.getVariableDecls();
+    Vector paramList = node.getParamList();
+    Vector variableDecls = node.getVariableDecls();
 
-    for (int i = 0; i < variableDecls.size(); i++)
-      ((ASTNode) variableDecls.elementAt(i)).accept(this);
+    // nestingLevel = symTable.getCurrentLevel();
 
-    Vector subProgDecls = programNode.getSubProgDecls();
+    for (int i = 0; i < paramList.size(); i++) {
+      VariableDeclarationNode decl = (VariableDeclarationNode)paramList.elementAt(i);
+      decl.accept(this);
+    }
+
+    for (int i = 0; i < variableDecls.size(); i++) {
+      VariableDeclarationNode decl = (VariableDeclarationNode)variableDecls.elementAt(i);
+      decl.accept(this);
+    }
+
+    node.getBody().accept(this);
+
+    symTable.endScope(node.getImage());
+
+    return symTable.getEntry(node.getImage()).getDataType();
+  }
+
+  @Override
+  public Integer visit(FunctionDeclNode node) {
+    symTable.beginScope();
+
+    Vector paramList = node.getParamList();
+    Vector variableDecls = node.getVariableDecls();
+
+    // nestingLevel = symTable.getCurrentLevel();
+
+    for (int i = 0; i < paramList.size(); i++) {
+      VariableDeclarationNode decl = (VariableDeclarationNode)paramList.elementAt(i);
+      decl.accept(this);
+    }
+
+    for (int i = 0; i < variableDecls.size(); i++) {
+      VariableDeclarationNode decl = (VariableDeclarationNode)variableDecls.elementAt(i);
+      int r = decl.accept(this);
+      node.addFrameSize(r);
+    }
+
+    node.getBody().accept(this);
+
+    if (!node.containsReturnStatement(node.getBody())) {
+      System.err.println("Line " + node.getLineNumber() + ": missing return statement in function " + node.getImage());
+      AbstractSyntaxTree.setError();
+    }
+
+    symTable.endScope(node.getImage());
+
+    return symTable.getEntry(node.getImage()).getDataType();
+  }
+
+  @Override
+  public Integer visit(ProgramNode node) {
+    symTable.beginScope();
+
+    Vector variableDecls = node.getVariableDecls();
+
+    for (int i = 0; i < variableDecls.size(); i++) {
+      int r = ((ASTNode) variableDecls.elementAt(i)).accept(this);
+      node.addFrameSize(r);
+    }
+
+    Vector subProgDecls = node.getSubProgDecls();
 
     for (int i = 0; i < subProgDecls.size(); i++) {
       SubProgramDeclNode subProg = (SubProgramDeclNode)subProgDecls.elementAt(i);
@@ -43,15 +93,15 @@ public class TypeVisitor implements Visitor<Integer>
       ((ASTNode) subProgDecls.elementAt(i)).accept(this);
     }
 
-    programNode.getBody().accept(this);
+    node.getBody().accept(this);
 
-    if (programNode.containsReturnStatement(programNode.getBody())) {
-      System.err.println("Line "+programNode.getLineNumber()+": main body contains return statement");
+    if (node.containsReturnStatement(node.getBody())) {
+      System.err.println("Line "+node.getLineNumber()+": main body contains return statement");
     }
 
-    symTable.endScope(programNode.getImage());
+    symTable.endScope(node.getImage());
 
-    programNode.setRealType(TypeTable.NO_TYPE);
+    node.setRealType(TypeTable.NO_TYPE);
 
     return TypeTable.NO_TYPE;
   }
@@ -807,6 +857,9 @@ public class TypeVisitor implements Visitor<Integer>
       ExpressionNode expr = (ExpressionNode) actualParameters.elementAt(i);
       int paramType = expr.accept(this);
       expr.setConvertedType(paramType);
+      if (!(expr instanceof ScalarReferenceNode)) {
+        expr.getContainingFunction().addFrameSize(TypeTable.getDataSize(paramType));
+      }
     }
 
     SymbolTableEntry entry = symTable.getEntry(node.getImage());
@@ -874,7 +927,7 @@ public class TypeVisitor implements Visitor<Integer>
       }
     }
 
-    return TypeTable.NO_TYPE;
+    return idType.getSize() * idList.size();
   }
 
   @Override

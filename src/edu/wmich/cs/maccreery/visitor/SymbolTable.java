@@ -14,6 +14,7 @@ public class SymbolTable extends Hashtable<String,Stack<SymbolTableEntry>>
   private final static int initialCapacity = 100;
   private int currentLevel = -1;
   private int currentOffset;
+  private int inRegister;
 
   private Stack<Vector<Stack<SymbolTableEntry>>> scopeList;
 
@@ -32,6 +33,7 @@ public class SymbolTable extends Hashtable<String,Stack<SymbolTableEntry>>
     scopeList.push(new Vector<Stack<SymbolTableEntry>>());
     currentLevel++;
     currentOffset = 0;
+    inRegister = 4;
   }
 
   public void endScope(String name) {
@@ -76,6 +78,47 @@ public class SymbolTable extends Hashtable<String,Stack<SymbolTableEntry>>
     scope.add(nameStack);
 
     return entry;
+  }
+
+  public SymbolTableEntry addWithoutOffset(String name, TypeNode type) {
+    Stack<SymbolTableEntry> nameStack = get(name);
+
+    if (nameStack != null) {
+      if (!nameStack.isEmpty()) {
+        SymbolTableEntry entry = (SymbolTableEntry) nameStack.peek();
+        if (entry != null) {
+          if (entry.getNestingLevel() == currentLevel)
+            return null;
+        }
+      }
+    }
+    else {
+      nameStack = new Stack<SymbolTableEntry>();
+      put(name,nameStack);
+    }
+    SymbolTableEntry entry = new SymbolTableEntry(name);
+    entry.setNestingLevel(currentLevel);
+    int s = type.getSize();
+    // entry.setOffset(currentOffset - s);
+    // currentOffset = currentOffset - s;
+    nameStack.push(entry);
+    Vector<Stack<SymbolTableEntry>> scope = scopeList.peek();
+
+    scope.add(nameStack);
+
+    return entry;
+  }
+
+  public void setInRegister(String name) {
+    SymbolTableEntry entry = getEntry(name);
+
+    entry.setRegister(inRegister++);
+  }
+
+  public int getInRegister(String name) {
+    SymbolTableEntry entry = getEntry(name);
+
+    return entry.getRegister();
   }
 
   public SymbolTableEntry getEntry(String name) {

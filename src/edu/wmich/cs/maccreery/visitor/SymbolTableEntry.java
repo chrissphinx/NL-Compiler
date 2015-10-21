@@ -7,6 +7,7 @@ public class SymbolTableEntry
   private int dataType = TypeTable.ANY_TYPE;
   private int nestingLevel;
   private int offset;
+  private int register;
 
   public SymbolTableEntry(String name) { this.name = name; }
 
@@ -20,6 +21,8 @@ public class SymbolTableEntry
 
   public void setOffset(int offset) { this.offset = offset; }
 
+  public void setRegister(int register) { this.register = register; }
+
   public String getName() {
     return name;
   }
@@ -28,9 +31,9 @@ public class SymbolTableEntry
     return dataType;
   }
 
-  public int getNestingLevel() {
-    return nestingLevel;
-  }
+  public int getNestingLevel() { return nestingLevel; }
 
   public int getOffset() { return this.offset; }
+
+  public int getRegister() { return this.register; }
 }
