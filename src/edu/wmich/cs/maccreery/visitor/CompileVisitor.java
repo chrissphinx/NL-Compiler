@@ -32,6 +32,9 @@ public class CompileVisitor implements Visitor<Integer>
       r = size / TypeTable.getDataSize(n.getType().getRealType());
     }
 
+    for (VariableDeclarationNode n : (Vector<VariableDeclarationNode>) node.getVariableDecls())
+      n.accept(this);
+
     body.append(".frame ").append(node.getImage()).append(" ").append(node.getFrameSize());
     for (int i = 0; i < r; i++) {
       body.append(" %vr").append(i + 4);
