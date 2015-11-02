@@ -12,7 +12,18 @@ public class CompileVisitor implements Visitor<Integer>
   private SymbolTable symTable;
   private int labelCounter = 0;
   private int stringCounter = 0;
-  private StringBuilder head = new StringBuilder(".data\n.string .s_nop \"\"\n");
+  private StringBuilder head = new StringBuilder(
+    ".data\n" +
+    ".string .s_nop \"\"\n" +
+    ".string .int_wformat \"%d\\12\"\n" +
+    ".string .float_wformat \"%f\\12\"\n" +
+    ".string .char_wformat \"%c\\12\"\n" +
+    ".string .string_wformat \"%s\\12\"\n" +
+    ".string .int_rformat \"%d\"\n" +
+    ".string .float_rformat \"%f\"\n" +
+    ".string .char_rformat \"%c\"\n" +
+    ".string .string_rformat \"%s\"\n"
+  );
   private StringBuilder body = new StringBuilder(".text\n");
 
   public CompileVisitor() { symTable = new SymbolTable(); }
@@ -102,10 +113,9 @@ public class CompileVisitor implements Visitor<Integer>
     int c = stringCounter;
     stringCounter++;
 
-    head.append(".string .s_").append(c).append(" \"").append(node.getString()).append("\"\n");
-    head.append(".string .n_").append(c).append(" \"\"\n");
+    head.append(".string .string_const_").append(c).append(" \"").append(node.getString()).append("\"\n");
 
-    String s = "loadI .s_" + c;
+    String s = "loadI .string_const_" + c;
     int r = ExpressionTable.getInstance().check(s);
     body.append(s).append(" => %vr").append(r).append("\n");
 
@@ -113,8 +123,65 @@ public class CompileVisitor implements Visitor<Integer>
   }
 
   @Override
-  public Integer visit(CaseStatementNode caseStatementNode) {
-    return null;
+  @SuppressWarnings("unchecked")
+  public Integer visit(CaseStatementNode node) {
+    int l = labelCounter;
+    int ll = l;
+    labelCounter += node.getCaseList().size();
+
+    int expression = node.getCaseExpr().accept(this);
+
+    for (CaseElementNode element : (Vector<CaseElementNode>) node.getCaseList()) {
+      if (ll != l) {
+        body.append(".L").append(ll).append(": nop").append("\n");
+      }
+
+      String s = "";
+      int r = 0;
+      Stack<Integer> registers = new Stack<Integer>();
+
+      for (ConstantNode c : (Vector<ConstantNode>) element.getCaseLabelList()) {
+        int constant = c.accept(this);
+
+        s = "comp %vr" + expression + " %vr" + constant;
+        r = ExpressionTable.getInstance().check(s);
+        body.append(s).append(" => %vr").append(r).append("\n");
+
+        s = "testne %vr" + r;
+        r = ExpressionTable.getInstance().check(s);
+        body.append(s).append(" => %vr").append(r).append("\n");
+
+        registers.push(r);
+      }
+
+      if (registers.size() > 1) {
+        s = "and %vr" + registers.pop() + " %vr" + registers.pop();
+        r = ExpressionTable.getInstance().check(s);
+        body.append(s).append(" => %vr").append(r).append("\n");
+
+        for (Integer i : registers) {
+          s = "and %vr" + i + " %vr" + r;
+          body.append(s).append(" => %vr").append(r).append("\n");
+        }
+      }
+
+      body.append("cbr %vr").append(r).append(" => ").append(".L").append(++ll).append("\n");
+
+      element.getStmtNode().accept(this);
+
+      body.append("jumpI .L").append(l).append("\n");
+    }
+
+    body.append(".L").append(ll).append(": nop").append("\n");
+
+    body.append(".L").append(l).append(": nop").append("\n");
+
+    return 0;
+  }
+
+  @Override
+  public Integer visit(CaseElementNode node) {
+    return 0;
   }
 
   @Override
@@ -554,11 +621,6 @@ public class CompileVisitor implements Visitor<Integer>
     }
 
     return idType.getSize() * idList.size();
-  }
-
-  @Override
-  public Integer visit(CaseElementNode caseElementNode) {
-    return null;
   }
 
   private static class ExpressionTable
