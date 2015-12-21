@@ -111,8 +111,7 @@
   <!-- Module NL Compiler -->
   
   <dirname property="module.nl_compiler.basedir" file="${ant.file}"/>
-  
-  
+
   <property name="module.jdk.home.nl_compiler" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.nl_compiler" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.nl_compiler" value="${project.jdk.classpath}"/>
@@ -143,8 +142,7 @@
     <pathelement location="${nl_compiler.testoutput.dir}"/>
     <pathelement location="${nl_compiler.output.dir}"/>
   </path>
-  
-  
+
   <patternset id="excluded.from.module.nl_compiler">
     <patternset refid="ignored.files"/>
   </patternset>
@@ -158,7 +156,6 @@
       <include name="src"/>
     </dirset>
   </path>
-  
   
   <target name="compile.module.nl_compiler" depends="compile.module.nl_compiler.production,compile.module.nl_compiler.tests" description="Compile module NL Compiler"/>
   

@@ -136,7 +136,7 @@ public class CompileVisitor implements Visitor<Integer>
         body.append(".L").append(ll).append(": nop").append("\n");
       }
 
-      String s = "";
+      String s;
       int r = 0;
       Stack<Integer> registers = new Stack<Integer>();
 
